@@ -3,16 +3,26 @@
             [midje.sweet :refer :all]))
 
 [[:chapter {:title "Introduction"}]]
-"Like other LISPs, Clojure is an imperative functional programming language.
-In many ways, Clojure has made strides towards 'purity', such as intensive use
-of purely-functional data structures, but in other areas, such as Java interop,
-Clojure is as imperative as Java.
-While imperative programming is commonplace, with only few esoteric programming languages
-taking the purely-declarative path, it has some disadvantages."
+"Just like the term *permalink* refers to a URL that will always link to the same content,
+*permacode* refers to code that will always behave the same way.
+More percisely, it refers to an *expression* that will always *evaluate to the same value*."
 
-"permacode is an attempt to create a purely-functional dialect of Clojure.
+"In some cases the is easier to achieve than in other cases.
+For example, the expression `3.14` will probably, in almost any programming language, mean
+a number greater than 3 and a little smaller than the ratio between the circumference of a
+circle and its diameter.  However, the expression `pi` is not that lucky, as it gets different
+meanings in different contexts."
+
+"Making permacode possible in the context of Clojure is a two-step process.
+First, we need to extract the *purely-functional core* of Clojure, since only
+purely-functional languages can guarantee behaving the same way regardless of
+their surroundings.
+Then we need to add *content addressing* to replace Clojure's module system."
+
+[[:section {:title "A Purely-Functional Clojure"}]]
+"permacode attempts to create a purely-functional dialect of Clojure.
 This is a stripped-down Clojure, with only the purely-functional parts, including:
-- Functions (well dah...)
+- Functions (well duh...)
 - `let`, `loop`, `if` etc.
 - maps, sets, vectors and lists
 - A subset of the `clojure.core` library functions and macros, as well as
@@ -22,7 +32,46 @@ It does not include:
 - Variables
 - Atoms, refs, agents, etc.
 - Java interop
-- Imperative functions from `clojure.core`"
+- Imperative functions from `clojure.core`
+- Arbitrary (non-permacode) libraries"
+
+[[:section {:title "Content Addressing"}]]
+"The term *content addressing* means that some objects (in our case, permacode modules)
+are *addressed* by their *content*, as opposed to addressing them by *name*, which is
+the way Clojure works by default."
+
+"In Clojure, a `:require` clause states a name of a module, relative to the classpath
+of the containing project.  This has two problems as far as permacode is concerned.
+First, it relies on the concept of a *project*, so in two different projects there
+could be a different module with the same name.
+Second, while a name is stated explicitly, the *version* is not.
+It is stated in the project description, but that could just as well be a `SNAPSHOT`
+version, which is not a version at all."
+
+"In Permacode, we would like code artifacts to be explicitly stated.
+Content addressing allows us to do that, because instead of referring to modules
+by their names, we refer to them by their *content*."
+
+"Someone reading these lines could think, what is the point of having modules in the first
+place, if we refer to them by their content, that  is, including them instead if `:require`ing them?
+Well, the answer is that we do not *include* one module in another, we just use a *cryptographic hash*
+over its content as its name.
+This is similar to how git represents objects like directories and commits.
+A directory in git is merely a list of hash codes for versions of underlying files and sub-dirs.
+A commit contains the hash code of the root directory at the time of the commit.
+This data structure is called a [Merkle Tree](https://en.wikipedia.org/wiki/Merkle_tree)."
+
+"To support this, we use an abstraction of a *hasher*, some data-store that can either *hash*
+an s-expression (serialize, hash and store its content, returning the hash code), and
+*unhash* a hash-code (retrieve from the data-store, de-serialize and return the s-expression)."
+
+"With such a hasher in place we can:
+1. Given a set of Clojure files (typically the source tree of a Clojure project),
+  a. Validate that all *.clj files conform with permacode, and if so --
+  b. Hash all these files, modifying them to reference each other by hash rather than by name.
+  c. Return a map from module name to module hash.
+2. Given a module hash, return the module.
+3. Given an s-expression containing fully-qualified names, evaluate the expression."
 
 [[:chapter {:title "symbols: Extract symbols from expressions"}]]
 "The `symbols` function is the key in our static analysis.  It takes a s-expression,
