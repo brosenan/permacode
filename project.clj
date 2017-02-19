@@ -4,7 +4,9 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/core.logic "0.8.11"]]
+                 [org.clojure/core.logic "0.8.11"]
+                 [mvxcvi/multihash "2.0.1"]
+                 [com.taoensso/nippy "2.13.0"]]
   :profiles {:dev {:dependencies [[midje "1.8.3"]
                                   [im.chit/lucid.publish "1.2.8"]
                                   [im.chit/hara.string.prose "2.4.8"]]
@@ -18,4 +20,8 @@
             :files {"core"
                     {:input "test/permacode/core_test.clj"
                      :title "core"
-                     :subtitle "Subsetting Clojure"}}})
+                     :subtitle "Subsetting Clojure"}
+                    "hasher"
+                    {:input "test/permacode/hasher_test.clj"
+                     :title "core"
+                     :subtitle "Content Addressable Storage"}}})

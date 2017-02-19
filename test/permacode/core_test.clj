@@ -67,9 +67,9 @@ an s-expression (serialize, hash and store its content, returning the hash code)
 
 "With such a hasher in place we can:
 1. Given a set of Clojure files (typically the source tree of a Clojure project),
-  a. Validate that all *.clj files conform with permacode, and if so --
-  b. Hash all these files, modifying them to reference each other by hash rather than by name.
-  c. Return a map from module name to module hash.
+  - Validate that all *.clj files conform with permacode, and if so --
+  - Hash all these files, modifying them to reference each other by hash rather than by name.
+  - Return a map from module name to module hash.
 2. Given a module hash, return the module.
 3. Given an s-expression containing fully-qualified names, evaluate the expression."
 
