@@ -10,7 +10,8 @@
   :profiles {:dev {:dependencies [[midje "1.8.3"]
                                   [im.chit/lucid.publish "1.2.8"]
                                   [im.chit/hara.string.prose "2.4.8"]]
-                   :plugins [[lein-midje "3.2.1"]]}}
+                   :plugins [[lein-midje "3.2.1"]
+                             [lein-pprint "1.1.2"]]}}
   :publish {:theme  "bolton"
             :template {:site   "permacode"
                        :author "Boaz Rosenan"
@@ -24,4 +25,8 @@
                     "hasher"
                     {:input "test/permacode/hasher_test.clj"
                      :title "hasher"
-                     :subtitle "Content Addressable Storage"}}})
+                     :subtitle "Content Addressable Storage"}
+                    "validate"
+                    {:input "test/permacode/validate_test.clj"
+                     :title "validate"
+                     :subtitle "Static Analysis"}}})
