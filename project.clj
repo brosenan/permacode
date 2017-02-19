@@ -23,5 +23,5 @@
                      :subtitle "Subsetting Clojure"}
                     "hasher"
                     {:input "test/permacode/hasher_test.clj"
-                     :title "core"
+                     :title "hasher"
                      :subtitle "Content Addressable Storage"}}})
