@@ -43,11 +43,11 @@ s-expressions into a hash-code, and `unhasher` is a function that converts hash 
 "The `hasher` serializes the s-expression and then calls the hash function on it"
 (fact
  (let [hasher (first hpair)]
-   (hasher 123) => [:hash [:ser 123]]))
+   (hasher :some-s-expr) => [:hash [:ser :some-s-expr]]))
 
 "As side-effect, hashing stores the serialized content under the hash."
 (fact
- @last-stored => [[:hash [:ser 123]] [:ser 123]])
+ @last-stored => [[:hash [:ser :some-s-expr]] [:ser :some-s-expr]])
 
 "The `unhasher` retrieves the content by its hash an de-serializes it."
 (fact
@@ -88,3 +88,20 @@ has read and write permissions.  This is the `repo` directory, where all objects
    (-> (str repo "/abcd") slurp-bytes (String. "UTF-8")) => "foo bar"
    ; This is basically what retr does...
    (-> "abcd" retr (String. "UTF-8")) => "foo bar"))
+
+[[:chapter {:title "Integration"}]]
+"Let's create a `nippy-multi-hasher` pair that uses local files for storage."
+(def hpair (nippy-multi-hasher (file-store repo)))
+
+"Now let's hash 100 values into it."
+(def hashes (let [hasher (first hpair)]
+              (into {} (for [x (range 100)]
+                         [x (hasher {:number x
+                                     :double (* 2 x)})]))))
+
+"Now we retrieve each value and check it."
+(fact
+ (let [unhasher (second hpair)]
+   (doseq [[key hash] hashes]
+     (unhasher hash) => {:number key
+                         :double (* 2 key)})))
