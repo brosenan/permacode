@@ -70,7 +70,7 @@
               <nav data-gumshoe-header>
                 <ul data-gumshoe>
                   <a data-scroll class="top" href="#page-top">TOP</a>
-                  <li><a class="chapter" data-scroll="" href="#introduction"><h4>1 &nbsp; Introduction</h4></a><a class="section" data-scroll="" href="#environment-representation"><h5><i>1.1 &nbsp; Environment Representation</i></h5></a></li><li><a class="chapter" data-scroll="" href="#validate-ns"><h4>2 &nbsp; validate-ns: Validating the ns Expression</h4></a></li><li><a class="chapter" data-scroll="" href="#validate-expr"><h4>3 &nbsp; validate-expr: Validate a Body Expression</h4></a></li>
+                  <li><a class="chapter" data-scroll="" href="#introduction"><h4>1 &nbsp; Introduction</h4></a><a class="section" data-scroll="" href="#environment-representation"><h5><i>1.1 &nbsp; Environment Representation</i></h5></a></li><li><a class="chapter" data-scroll="" href="#validate-ns"><h4>2 &nbsp; validate-ns: Validating the ns Expression</h4></a></li><li><a class="chapter" data-scroll="" href="#validate-expr"><h4>3 &nbsp; validate-expr: Validate a Body Expression</h4></a><a class="section" data-scroll="" href="#validating-values"><h5><i>3.1 &nbsp; Validating Values</i></h5></a></li>
                 </ul>
               </nav>
             </div>
@@ -79,7 +79,7 @@
           <div class="toc">
               <nav>
                 <ul>
-                  <li><a class="chapter" data-scroll="" href="#introduction"><h4>1 &nbsp; Introduction</h4></a><a class="section" data-scroll="" href="#environment-representation"><h5><i>1.1 &nbsp; Environment Representation</i></h5></a></li><li><a class="chapter" data-scroll="" href="#validate-ns"><h4>2 &nbsp; validate-ns: Validating the ns Expression</h4></a></li><li><a class="chapter" data-scroll="" href="#validate-expr"><h4>3 &nbsp; validate-expr: Validate a Body Expression</h4></a></li>
+                  <li><a class="chapter" data-scroll="" href="#introduction"><h4>1 &nbsp; Introduction</h4></a><a class="section" data-scroll="" href="#environment-representation"><h5><i>1.1 &nbsp; Environment Representation</i></h5></a></li><li><a class="chapter" data-scroll="" href="#validate-ns"><h4>2 &nbsp; validate-ns: Validating the ns Expression</h4></a></li><li><a class="chapter" data-scroll="" href="#validate-expr"><h4>3 &nbsp; validate-expr: Validate a Body Expression</h4></a><a class="section" data-scroll="" href="#validating-values"><h5><i>3.1 &nbsp; Validating Values</i></h5></a></li>
                 </ul>
               </nav>
           </div>
@@ -104,7 +104,20 @@
    &quot;string&quot; (global-env &quot;clojure.string&quot;)}</code></pre></div><div><p>If a <code>:require</code> refers to a namespace that is not in the environment, an exception is thrown.</p></div><div class="code"><pre><code class="clojure">(validate-ns '(ns foo.bar
                (:require [clojure.core.async])) global-env)
  =&gt; (throws #&quot;Namespace clojure.core.async is not approved for permacode&quot;)</code></pre></div><div><p><code>validate-ns</code> also throws an exception if the expression it is given is not an <code>ns</code> expression.</p></div><div class="code"><pre><code class="clojure">(validate-ns '(not-an-ns-expr foo.bar) global-env)
- =&gt; (throws #&quot;The first expression in a permacode source file must be an ns.  not-an-ns-expr given.&quot;)</code></pre></div><div><span id="validate-expr"></span><h2><b>3 &nbsp;&nbsp; validate-expr: Validate a Body Expression</b></h2></div><div><p>Once we have our local environment, we can start validating </p></div>
+ =&gt; (throws #&quot;The first expression in a permacode source file must be an ns.  not-an-ns-expr given.&quot;)</code></pre></div><div><span id="validate-expr"></span><h2><b>3 &nbsp;&nbsp; validate-expr: Validate a Body Expression</b></h2></div><div><p>Given a local environment we can validate a body  expression. A declaration adds a symbol to the environment.</p></div><div class="code"><pre><code class="clojure">(let [new-env (validate-expr {&quot;&quot; #{'foo 'bar}} '(def quux))]
+ ((new-env &quot;&quot;) 'quux) =&gt; 'quux)</code></pre></div><div><p>The same works with definitions as well.</p></div><div class="code"><pre><code class="clojure">(let [new-env (validate-expr {&quot;&quot; #{'foo 'bar}} '(def quux 123))]
+ ((new-env &quot;&quot;) 'quux) =&gt; 'quux)</code></pre></div><div><p>Macros are expanded.  For example. <code>defn</code> is interpreted as a <code>def</code> with <code>fn</code>.</p></div><div class="code"><pre><code class="clojure">(let [new-env (validate-expr {&quot;&quot; #{&quot;foo&quot; &quot;bar&quot;}} '(defn quux [x] x))]
+ ((new-env &quot;&quot;) 'quux) =&gt; 'quux)</code></pre></div><div><p>When a form is not a valid top-level form, an exception is thrown.</p></div><div class="code"><pre><code class="clojure">(validate-expr {&quot;&quot; #{'foo 'bar}} '(let [x 2] (+ x 3)))
+ =&gt; (throws &quot;let* is not a valid top-level form.&quot;)</code></pre></div><div><p>For a <code>do</code>, we recurse to validate the child forms.</p></div><div class="code"><pre><code class="clojure">(validate-expr {&quot;&quot; #{}} '(do
+                          (def foo 1)
+                          (def bar 2)))
+ =&gt; {&quot;&quot; #{'foo 'bar}}</code></pre></div><div><span id="validating-values"></span><h3>3.1 &nbsp;&nbsp; Validating Values</h3></div><div><p>In definitions, the values are validated to only refer to allowed symbols.</p></div><div class="code"><pre><code class="clojure">(validate-expr {&quot;&quot; #{'foo}} '(def bar (+ foo 2)))
+ =&gt; (throws &quot;symbols #{+} are not allowed&quot;)
+ (validate-expr {&quot;&quot; #{'foo '+}} '(def bar (+ foo 2)))
+ =&gt; {&quot;&quot; #{'foo 'bar '+}}</code></pre></div><div><p>In <code>do</code> blocks, symbols defined (or even declared) in previous definitions can be used in succeeding definitions.</p></div><div class="code"><pre><code class="clojure">(validate-expr {&quot;&quot; #{}} '(do
+                          (declare foo)
+                          (def bar foo)))
+ =&gt; {&quot;&quot; #{'bar 'foo}}</code></pre></div>
         </div>
       </div>
     </div>
