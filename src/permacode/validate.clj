@@ -1,5 +1,5 @@
 (ns permacode.validate
-  (:require [permacode.core :refer :all]))
+  (:require [permacode.symbols :refer :all]))
 
 (defmulti validate-ns-form (fn [[form & _] env]
                              form))
@@ -37,7 +37,8 @@
           forbidden (clojure.set/difference s env)]
       (when-not (empty? forbidden)
         (throw (Exception. (str "symbols " forbidden " are not allowed"))))))
-  (clojure.set/union env #{(second expr)}))
+  (let [new-symbol (second expr)]
+    (conj env new-symbol)))
 
 (defmethod validate-expr 'do [env expr]
   (loop [env env
