@@ -61,7 +61,7 @@
           <div class="heading">
             <div>
               <h5>Author: Boaz Rosenan&nbsp;&nbsp;<a href="mailto:brosenan@gmail.com">(brosenan@gmail.com)</a></h5>
-              <h5>Date: 19 February 2017</h5>
+              <h5>Date: 20 February 2017</h5>
               <h5>Repository: <a href="https://github.com/brosenan/permacode">https://github.com/brosenan/permacode</a></h5>
               <h5>Version: 0.1.0-SNAPSHOT</h5></div></div>
           <hr/>
@@ -91,20 +91,20 @@
    &quot;clojure.string&quot; (constantly true)
    &quot;clojure.set&quot; (constantly true)
    &quot;my.proj.core&quot; (constantly true)
-   &quot;my.proj.other&quot; (constantly true)})</code></pre></div><div><span id="validate-ns"></span><h2><b>2 &nbsp;&nbsp; validate-ns: Validating the ns Expression</b></h2></div><div><p><code>validate-ns</code> takes a global environment and an <code>ns</code> expression. For a trivial <code>ns</code> expression it returns a local environment containing only the default namespace.</p></div><div class="code"><pre><code class="clojure">(validate-ns '(ns foo.bar) global-env) =&gt; {&quot;&quot; core-symbols}</code></pre></div><div><p>If simple <code>require</code> blocks are present, the corresponding entries from the global environment are copied to the local environment.</p></div><div class="code"><pre><code class="clojure">(validate-ns '(ns foo.bar
-               (require [clojure.string]
+   &quot;my.proj.other&quot; (constantly true)})</code></pre></div><div><span id="validate-ns"></span><h2><b>2 &nbsp;&nbsp; validate-ns: Validating the ns Expression</b></h2></div><div><p><code>validate-ns</code> takes a global environment and an <code>ns</code> expression. For a trivial <code>ns</code> expression it returns a local environment containing only the default namespace.</p></div><div class="code"><pre><code class="clojure">(validate-ns '(ns foo.bar) global-env) =&gt; {&quot;&quot; core-symbols}</code></pre></div><div><p>If simple <code>:require</code> blocks are present, the corresponding entries from the global environment are copied to the local environment.</p></div><div class="code"><pre><code class="clojure">(validate-ns '(ns foo.bar
+               (:require [clojure.string]
                         [clojure.set])
-               (require [my.proj.core])) global-env)
+               (:require [my.proj.core])) global-env)
  =&gt; {&quot;&quot; core-symbols
    &quot;clojure.string&quot; (global-env &quot;clojure.string&quot;)
    &quot;clojure.set&quot; (global-env &quot;clojure.set&quot;)
-   &quot;my.proj.core&quot; (global-env &quot;my.proj.core&quot;)}</code></pre></div><div><p><code>:as</code> causes a <code>require</code> to create a namespace with a different name in the local environment.</p></div><div class="code"><pre><code class="clojure">(validate-ns '(ns foo.bar
-               (require [clojure.string :as string])) global-env)
+   &quot;my.proj.core&quot; (global-env &quot;my.proj.core&quot;)}</code></pre></div><div><p><code>:as</code> causes a <code>:require</code> to create a namespace with a different name in the local environment.</p></div><div class="code"><pre><code class="clojure">(validate-ns '(ns foo.bar
+               (:require [clojure.string :as string])) global-env)
  =&gt; {&quot;&quot; core-symbols
-   &quot;string&quot; (global-env &quot;clojure.string&quot;)}</code></pre></div><div><p>If a <code>require</code> refers to a namespace that is not in the environment, an exception is thrown.</p></div><div class="code"><pre><code class="clojure">(validate-ns '(ns foo.bar
-               (require [clojure.core.async])) global-env)
+   &quot;string&quot; (global-env &quot;clojure.string&quot;)}</code></pre></div><div><p>If a <code>:require</code> refers to a namespace that is not in the environment, an exception is thrown.</p></div><div class="code"><pre><code class="clojure">(validate-ns '(ns foo.bar
+               (:require [clojure.core.async])) global-env)
  =&gt; (throws #&quot;Namespace clojure.core.async is not approved for permacode&quot;)</code></pre></div><div><p><code>validate-ns</code> also throws an exception if the expression it is given is not an <code>ns</code> expression.</p></div><div class="code"><pre><code class="clojure">(validate-ns '(not-an-ns-expr foo.bar) global-env)
- =&gt; (throws #&quot;The first expression in a permacode source file must be an ns.  not-an-ns-expr given.&quot;)</code></pre></div><div><span id="validate-expr"></span><h2><b>3 &nbsp;&nbsp; validate-expr: Validate a Body Expression</b></h2></div><div><p>Once we have </p></div>
+ =&gt; (throws #&quot;The first expression in a permacode source file must be an ns.  not-an-ns-expr given.&quot;)</code></pre></div><div><span id="validate-expr"></span><h2><b>3 &nbsp;&nbsp; validate-expr: Validate a Body Expression</b></h2></div><div><p>Once we have our local environment, we can start validating </p></div>
         </div>
       </div>
     </div>
