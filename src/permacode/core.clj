@@ -61,10 +61,20 @@
        (add-ns 'clojure.set)))
 
 (def core-white-list
-  #{'+ '* 'map 'count 'range})
+  #{'+ '- '* '/ '= '== '!= 'inc 'dec
+    'map 'filter 'reduce 'into
+    'count 'range 'apply 'concat
+    'first 'second 'nth 'rest
+    'class 'name
+    'list 'seq 'vector 'vec 'str 'keyword 'namespace
+    'empty?
+    'meta 'with-meta
+    'assoc 'assoc-in 'merge 'merge-with
+    '*ns* ; TBD
+    })
 
 (def white-listed-ns
-  #{"clojure.set" "clojure.string"})
+  #{"clojure.set" "clojure.string" "permacode.core"})
 
 (defn symbols-for-namespaces [ns-map]
   (into #{} (for [[ns-name ns-val] ns-map
@@ -85,3 +95,6 @@
         res `(do ~@defs)]
     (validate/validate-expr allowed-symbols res)
     res))
+
+(defn error [& args]
+  (throw (Exception. (apply str args))))

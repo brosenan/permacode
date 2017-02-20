@@ -31,14 +31,18 @@
       ; else
       (validate-expr env expanded))))
 
+
+(defn validate-value [env expr]
+  (let [s (symbols expr)
+        forbidden (clojure.set/difference s env)]
+    (when-not (empty? forbidden)
+      (throw (Exception. (str "symbols " forbidden " are not allowed"))))))
+
 (defmethod validate-expr 'def [env expr]
-  (when (= (count expr) 3)
-    (let [s (symbols (nth expr 2))
-          forbidden (clojure.set/difference s env)]
-      (when-not (empty? forbidden)
-        (throw (Exception. (str "symbols " forbidden " are not allowed"))))))
-  (let [new-symbol (second expr)]
-    (conj env new-symbol)))
+  (let [env (conj env (second expr))]
+    (when (= (count expr) 3)
+      (validate-value env (nth expr 2)))
+    env))
 
 (defmethod validate-expr 'do [env expr]
   (loop [env env
@@ -57,3 +61,6 @@
 (defmethod validate-expr 'defmethod [env expr]
   (let [[defmethod' multifn dispatch-val & fn-tail] expr]
     (validate-expr env `(defn ~multifn ~@(concat fn-tail [dispatch-val])))))
+(defmethod validate-expr 'prefer-method [env expr]
+  (validate-value env (vec (rest expr)))
+  env)

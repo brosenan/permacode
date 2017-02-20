@@ -84,6 +84,11 @@ A declaration adds a symbol to the environment."
  (let [new-env (validate-expr #{'foo 'bar} '(def quux 123))]
    (new-env 'quux) => 'quux))
 
+"The environment provided to the body contains the variable being `def`ed, so that recursive
+definitions are possible."
+(fact
+  (validate-expr #{} '(def quux [1 quux]))
+  => #{'quux})
 "Macros are expanded.  For example. `defn` is interpreted as a `def` with `fn`."
 (fact
  (let [new-env (validate-expr #{'foo 'bar} '(defn quux [x] x))]
@@ -122,6 +127,12 @@ We allow them in permacode, by making special cases out of them."
                    (+ a b)))
  => (throws "symbols #{c +} are not allowed"))
 
+"To support multimethods, `prefer-method` is allowed at the top-level."
+(fact
+ (validate-expr #{'foo 'a 'b}
+                '(prefer-method foo a b)) => #{'foo 'a 'b}
+  (validate-expr #{}
+                '(prefer-method foo a b)) => (throws "symbols #{a foo b} are not allowed"))
 [[:section {:title "Validating Values"}]]
 "In definitions, the values are validated to only refer to allowed symbols."
 (fact

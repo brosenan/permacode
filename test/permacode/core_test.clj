@@ -116,7 +116,7 @@ and returns a set of symbols defined by this s-expression."
 "In the `fn*` special form (used by the `fn` macro) `symbols` removes the argument names from the set."
 (fact
  (symbols '(fn [x y] (+ x y a))) => #{'a '+}
- (symbols '(fn foo [x y] (+ x y a))) => #{'a '+})
+ (symbols '(fn foo [x y]  (+ x (foo y a)))) => #{'a '+})
 
 "The function name (in named functions) is also removed."
 (fact
@@ -198,11 +198,12 @@ symbols referring to the alias are also allowed."
 (fact
  (pure
   (def x (string/join ", " (set/union #{1 2} #{3})))))
+
 [[:section {:title "Stress Testing"}]]
 "The following is a usage example coming from [cloudlog.clj](https://brosenan.github.io/cloudlog.clj/core.html).
 It is supposed to be all pure, so it's a good test case..."
 
-(comment pure
+(pure
 
  (declare generate-rule-func)
 
@@ -219,10 +220,10 @@ It is supposed to be all pure, so it's a good test case..."
  (defmethod propagate-symbols 'for [cond symbols]
    (set/union symbols (binding-symbols (second cond) cond)))
 
- (defmulti process-conds (fn [conds symbols] (class (first conds))))
+ (defmulti process-conds (fn [conds symbols] (str (class (first conds)))))
 
                                         ; fact
- (defmethod process-conds  clojure.lang.IPersistentVector [conds symbols]
+ (defmethod process-conds  "class clojure.lang.IPersistentVector" [conds symbols]
    (let [target (first conds)
          target-name (first target)]
      (if (= (count conds) 1)
@@ -235,11 +236,11 @@ It is supposed to be all pure, so it's a good test case..."
              missing (set/difference (pureclj/symbols key) symbols)
              meta {:continuation (with-meta `(fn [[~'$key$ ~@params]] ~func) meta)}]
          (when-not (empty? missing)
-           (throw (Exception. (str "variables " missing " are unbound in the key for " (first target)))))
+           (permacode.core/error "variables " missing " are unbound in the key for " (first target)))
          [`[[~key ~@params]] meta]))))
 
                                         ; guard
- (defmethod process-conds  clojure.lang.ISeq [conds symbols]
+ (defmethod process-conds  "class clojure.lang.ISeq" [conds symbols]
    (let [cond (first conds)
          [body meta] (process-conds (rest conds) (propagate-symbols cond symbols))
          body (seq (concat cond [body]))
@@ -282,7 +283,7 @@ It is supposed to be all pure, so it's a good test case..."
    (loop [metadata metadata
           link 0]
      (when-not (:checked metadata)
-       (throw (Exception. (str "Rule is insecure. Link " link " is not checked."))))
+       (permacode.core/error "Rule is insecure. Link " link " is not checked."))
      (when (:continuation metadata)
        (recur (-> metadata :continuation meta) (inc link)))))
 
@@ -324,15 +325,15 @@ It is supposed to be all pure, so it's a good test case..."
  (defn simulate-with [rule & facts]
    (simulate* rule (with* facts)))
 
- (defmulti fact-table (fn [[name arity]] (class name)))
+ (defmulti fact-table (fn [[name arity]] (str (class name))))
 
- (defmethod fact-table clojure.lang.Named [[name arity]]
+ (defmethod fact-table "class clojure.lang.Named" [[name arity]]
    (str (namespace name) "/" (clojure.core/name name)))
- (defmethod fact-table clojure.lang.IFn [[name arity]]
+ (defmethod fact-table "class clojure.lang.IFn" [[name arity]]
    (let [ns (-> name meta :ns)
          name (-> name meta :name)]
      (str ns "/" name)))
- (prefer-method fact-table clojure.lang.Named clojure.lang.IFn)
+ (prefer-method fact-table "class clojure.lang.Named" "class clojure.lang.IFn")
 
  (defmacro by [set body]
    `(when (contains? (-> ~'$input$ meta :writers) ~set)
@@ -340,6 +341,12 @@ It is supposed to be all pure, so it's a good test case..."
 
  (defmacro by-anyone [body]
    body))
+
+[[:chapter {:title "error: A Replacement for throw"}]]
+"We do not allow pure code to `throw`, because throwing exceptions involves creating Java classes.
+Instead, we provide the `error` function, which throws an `Exception` with the given string."
+(fact
+ (error 1000 " bottles of beer on the wall") => (throws #"1000 bottles of beer"))
 
 [[:chapter {:title "box: Evaluate expressions through an environment" :tag "box"}]]
 "should return a constant for a constant"
