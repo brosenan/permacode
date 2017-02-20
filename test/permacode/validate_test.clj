@@ -101,6 +101,27 @@ A declaration adds a symbol to the environment."
                             (def bar 2)))
  => {"" #{'foo 'bar}})
 
+"`defmacro`, `defmulti` and `defmethod` use Java interop when expanded.
+We allow them in permacode, by making special cases out of them."
+(fact
+ (validate-expr {"" #{'clojure.core/concat 'clojure.core/list 'clojure.core/seq}} ; used by the syntax-quote
+                '(defmacro foo [x y z] `(~x ~y ~z)))
+ => {"" #{'foo 'clojure.core/concat 'clojure.core/list 'clojure.core/seq}}
+ (validate-expr {"" #{'first}}
+                '(defmulti bar first))
+ => {"" #{'first 'bar}}
+ (validate-expr {"" #{}}
+                '(defmulti bar first))
+ => (throws "symbols #{first} are not allowed")
+ (validate-expr {"" #{'+}}
+                '(defmethod bar :x [a b]
+                   (+ a b)))
+ => {"" #{'+ 'bar}}
+ (validate-expr {"" #{}}
+                '(defmethod bar c [a b]
+                   (+ a b)))
+ => (throws "symbols #{c +} are not allowed"))
+
 [[:section {:title "Validating Values"}]]
 "In definitions, the values are validated to only refer to allowed symbols."
 (fact

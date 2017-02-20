@@ -144,6 +144,10 @@ and returns a set of symbols defined by this s-expression."
  (symbols '(throw foo)) => (throws Exception "throw is not allowed. Use error instead")
  (symbols '(try foo bar baz)) => (throws "try/catch is not allowed"))
 
+"While `for` is a macro and not a special form, its definition makes use of Java interop, which we disallow.
+We therefore make `for` a special case."
+(fact
+ (symbols '(for [x foo] (* x 2))) => #{'foo '*})
 
 [[:chapter {:title "box: Evaluate expressions through an environment" :tag "box"}]]
 "should return a constant for a constant"

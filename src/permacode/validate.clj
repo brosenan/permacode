@@ -47,3 +47,12 @@
       ; else
       (let [env (validate-expr env (first exprs))]
         (recur env (rest exprs))))))
+
+(defmethod validate-expr 'defmacro [env expr]
+  (let [[defmacro' name & body] expr])
+  (validate-expr env (cons 'defn (rest expr))))
+(defmethod validate-expr 'defmulti [env expr]
+  (validate-expr env (concat ['def (second expr)] (vec (drop 2 expr)))))
+(defmethod validate-expr 'defmethod [env expr]
+  (let [[defmethod' multifn dispatch-val & fn-tail] expr]
+    (validate-expr env `(defn ~multifn ~@(concat fn-tail [dispatch-val])))))

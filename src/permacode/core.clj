@@ -15,7 +15,7 @@
 (defmethod symbols clojure.lang.Symbol [symbol] #{symbol})
 
 (defmethod symbols clojure.lang.ISeq [seq]
-  (apply list-symbols (macroexpand seq)))
+  (apply list-symbols seq))
 
 (defmethod symbols clojure.lang.PersistentVector [vec]
   (if (empty? vec)
@@ -32,9 +32,13 @@
                            ([] :function-call)) :default :function-call)
 
 (defmethod list-symbols :function-call [& seq]
-  (if (empty? seq)
-    #{}
-    (union (symbols (first seq)) (symbols (rest seq)))))
+  (let [expanded (macroexpand seq)]
+    (if (= expanded seq)
+      (if (empty? seq)
+        #{}
+        (union (symbols (first seq)) (symbols (vec (rest seq)))))
+      ; else
+      (list-symbols expanded))))
 
 (defn ^:private bindings-symbols [bindings syms]
   (if (empty? bindings)
@@ -86,6 +90,9 @@
 
 (defmethod list-symbols 'try
   ([_ & body] (throw (Exception. "try/catch is not allowed"))))
+
+(defmethod list-symbols 'for
+  ([_ bindings body] (bindings-symbols bindings (symbols body))))
 
 
 (defn ^:private create-bindings [syms env]
