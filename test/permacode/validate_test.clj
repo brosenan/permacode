@@ -42,29 +42,29 @@ For a trivial `ns` expression it returns a local environment containing only the
 (fact
  (validate-ns '(ns foo.bar) global-env) => {"" core-symbols})
 
-"If simple `require` blocks are present, the corresponding entries from the global environment are copied
+"If simple `:require` blocks are present, the corresponding entries from the global environment are copied
 to the local environment."
 (fact
  (validate-ns '(ns foo.bar
-                 (require [clojure.string]
+                 (:require [clojure.string]
                           [clojure.set])
-                 (require [my.proj.core])) global-env)
+                 (:require [my.proj.core])) global-env)
  => {"" core-symbols
      "clojure.string" (global-env "clojure.string")
      "clojure.set" (global-env "clojure.set")
      "my.proj.core" (global-env "my.proj.core")})
 
-"`:as` causes a `require` to create a namespace with a different name in the local environment."
+"`:as` causes a `:require` to create a namespace with a different name in the local environment."
 (fact
  (validate-ns '(ns foo.bar
-                 (require [clojure.string :as string])) global-env)
+                 (:require [clojure.string :as string])) global-env)
  => {"" core-symbols
      "string" (global-env "clojure.string")})
 
-"If a `require` refers to a namespace that is not in the environment, an exception is thrown."
+"If a `:require` refers to a namespace that is not in the environment, an exception is thrown."
 (fact
  (validate-ns '(ns foo.bar
-                 (require [clojure.core.async])) global-env)
+                 (:require [clojure.core.async])) global-env)
  => (throws #"Namespace clojure.core.async is not approved for permacode"))
 
 "`validate-ns` also throws an exception if the expression it is given is not an `ns` expression."
@@ -73,4 +73,4 @@ to the local environment."
  => (throws #"The first expression in a permacode source file must be an ns.  not-an-ns-expr given."))
 
 [[:chapter {:title "validate-expr: Validate a Body Expression" :tag "validate-expr"}]]
-"Once we have "
+"Once we have our local environment, we can start validating "

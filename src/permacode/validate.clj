@@ -3,7 +3,7 @@
 (defmulti validate-ns-form (fn [[form & _] env]
                              form))
 
-(defmethod validate-ns-form 'require [[_ & ns-list] env]
+(defmethod validate-ns-form :require [[_ & ns-list] env]
   (apply merge (for [[ns-name & {:keys [as]}] ns-list]
                  (let [ns-name (name ns-name)
                        alias (if as
