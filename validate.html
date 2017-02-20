@@ -111,7 +111,23 @@
  =&gt; (throws &quot;let* is not a valid top-level form.&quot;)</code></pre></div><div><p>For a <code>do</code>, we recurse to validate the child forms.</p></div><div class="code"><pre><code class="clojure">(validate-expr {&quot;&quot; #{}} '(do
                           (def foo 1)
                           (def bar 2)))
- =&gt; {&quot;&quot; #{'foo 'bar}}</code></pre></div><div><span id="validating-values"></span><h3>3.1 &nbsp;&nbsp; Validating Values</h3></div><div><p>In definitions, the values are validated to only refer to allowed symbols.</p></div><div class="code"><pre><code class="clojure">(validate-expr {&quot;&quot; #{'foo}} '(def bar (+ foo 2)))
+ =&gt; {&quot;&quot; #{'foo 'bar}}</code></pre></div><div><p><code>defmacro</code>, <code>defmulti</code> and <code>defmethod</code> use Java interop when expanded. We allow them in permacode, by making special cases out of them.</p></div><div class="code"><pre><code class="clojure">(validate-expr {&quot;&quot; #{'clojure.core/concat 'clojure.core/list 'clojure.core/seq}} ; used by the syntax-quote
+              '(defmacro foo [x y z] `(~x ~y ~z)))
+ =&gt; {&quot;&quot; #{'foo 'clojure.core/concat 'clojure.core/list 'clojure.core/seq}}
+ (validate-expr {&quot;&quot; #{'first}}
+              '(defmulti bar first))
+ =&gt; {&quot;&quot; #{'first 'bar}}
+ (validate-expr {&quot;&quot; #{}}
+              '(defmulti bar first))
+ =&gt; (throws &quot;symbols #{first} are not allowed&quot;)
+ (validate-expr {&quot;&quot; #{'+}}
+              '(defmethod bar :x [a b]
+                 (+ a b)))
+ =&gt; {&quot;&quot; #{'+ 'bar}}
+ (validate-expr {&quot;&quot; #{}}
+              '(defmethod bar c [a b]
+                 (+ a b)))
+ =&gt; (throws &quot;symbols #{c +} are not allowed&quot;)</code></pre></div><div><span id="validating-values"></span><h3>3.1 &nbsp;&nbsp; Validating Values</h3></div><div><p>In definitions, the values are validated to only refer to allowed symbols.</p></div><div class="code"><pre><code class="clojure">(validate-expr {&quot;&quot; #{'foo}} '(def bar (+ foo 2)))
  =&gt; (throws &quot;symbols #{+} are not allowed&quot;)
  (validate-expr {&quot;&quot; #{'foo '+}} '(def bar (+ foo 2)))
  =&gt; {&quot;&quot; #{'foo 'bar '+}}</code></pre></div><div><p>In <code>do</code> blocks, symbols defined (or even declared) in previous definitions can be used in succeeding definitions.</p></div><div class="code"><pre><code class="clojure">(validate-expr {&quot;&quot; #{}} '(do
