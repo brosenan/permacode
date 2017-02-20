@@ -106,7 +106,8 @@
  =&gt; (throws #&quot;Namespace clojure.core.async is not approved for permacode&quot;)</code></pre></div><div><p><code>validate-ns</code> also throws an exception if the expression it is given is not an <code>ns</code> expression.</p></div><div class="code"><pre><code class="clojure">(validate-ns '(not-an-ns-expr foo.bar) global-env)
  =&gt; (throws #&quot;The first expression in a permacode source file must be an ns.  not-an-ns-expr given.&quot;)</code></pre></div><div><span id="validate-expr"></span><h2><b>3 &nbsp;&nbsp; validate-expr: Validate a Body Expression</b></h2></div><div><p>Given a set of allowed symbols we can validate a body  expression. A declaration adds a symbol to the environment.</p></div><div class="code"><pre><code class="clojure">(let [new-env (validate-expr #{'foo 'bar} '(def quux))]
  (new-env 'quux) =&gt; 'quux)</code></pre></div><div><p>The same works with definitions as well.</p></div><div class="code"><pre><code class="clojure">(let [new-env (validate-expr #{'foo 'bar} '(def quux 123))]
- (new-env 'quux) =&gt; 'quux)</code></pre></div><div><p>Macros are expanded.  For example. <code>defn</code> is interpreted as a <code>def</code> with <code>fn</code>.</p></div><div class="code"><pre><code class="clojure">(let [new-env (validate-expr #{'foo 'bar} '(defn quux [x] x))]
+ (new-env 'quux) =&gt; 'quux)</code></pre></div><div><p>The environment provided to the body contains the variable being <code>def</code>ed, so that recursive definitions are possible.</p></div><div class="code"><pre><code class="clojure">(validate-expr #{} '(def quux [1 quux]))
+=&gt; #{'quux}</code></pre></div><div><p>Macros are expanded.  For example. <code>defn</code> is interpreted as a <code>def</code> with <code>fn</code>.</p></div><div class="code"><pre><code class="clojure">(let [new-env (validate-expr #{'foo 'bar} '(defn quux [x] x))]
  (new-env 'quux) =&gt; 'quux)</code></pre></div><div><p>When a form is not a valid top-level form, an exception is thrown.</p></div><div class="code"><pre><code class="clojure">(validate-expr #{'foo 'bar} '(let [x 2] (+ x 3)))
  =&gt; (throws &quot;let* is not a valid top-level form.&quot;)</code></pre></div><div><p>For a <code>do</code>, we recurse to validate the child forms.</p></div><div class="code"><pre><code class="clojure">(validate-expr #{} '(do
                      (def foo 1)
@@ -127,7 +128,10 @@
  (validate-expr #{}
               '(defmethod bar c [a b]
                  (+ a b)))
- =&gt; (throws &quot;symbols #{c +} are not allowed&quot;)</code></pre></div><div><span id="validating-values"></span><h3>3.1 &nbsp;&nbsp; Validating Values</h3></div><div><p>In definitions, the values are validated to only refer to allowed symbols.</p></div><div class="code"><pre><code class="clojure">(validate-expr #{'foo} '(def bar (+ foo 2)))
+ =&gt; (throws &quot;symbols #{c +} are not allowed&quot;)</code></pre></div><div><p>To support multimethods, <code>prefer-method</code> is allowed at the top-level.</p></div><div class="code"><pre><code class="clojure">(validate-expr #{'foo 'a 'b}
+              '(prefer-method foo a b)) =&gt; #{'foo 'a 'b}
+(validate-expr #{}
+              '(prefer-method foo a b)) =&gt; (throws &quot;symbols #{a foo b} are not allowed&quot;)</code></pre></div><div><span id="validating-values"></span><h3>3.1 &nbsp;&nbsp; Validating Values</h3></div><div><p>In definitions, the values are validated to only refer to allowed symbols.</p></div><div class="code"><pre><code class="clojure">(validate-expr #{'foo} '(def bar (+ foo 2)))
  =&gt; (throws &quot;symbols #{+} are not allowed&quot;)
  (validate-expr #{'foo '+} '(def bar (+ foo 2)))
  =&gt; #{'foo 'bar '+}</code></pre></div><div><p>In <code>do</code> blocks, symbols defined (or even declared) in previous definitions can be used in succeeding definitions.</p></div><div class="code"><pre><code class="clojure">(validate-expr #{} '(do

@@ -70,7 +70,7 @@
               <nav data-gumshoe-header>
                 <ul data-gumshoe>
                   <a data-scroll class="top" href="#page-top">TOP</a>
-                  <li><a class="chapter" data-scroll="" href="#introduction"><h4>1 &nbsp; Introduction</h4></a><a class="section" data-scroll="" href="#a-purely-functional-clojure"><h5><i>1.1 &nbsp; A Purely-Functional Clojure</i></h5></a><a class="section" data-scroll="" href="#content-addressing"><h5><i>1.2 &nbsp; Content Addressing</i></h5></a></li><li><a class="chapter" data-scroll="" href="#symbols-extract-symbols-from-expressions"><h4>2 &nbsp; symbols: Extract symbols from expressions</h4></a></li><li><a class="chapter" data-scroll="" href="#box"><h4>3 &nbsp; box: Evaluate expressions through an environment</h4></a></li><li><a class="chapter" data-scroll="" href="#add-ns"><h4>4 &nbsp; add-ns: Import a namespace to an environment</h4></a></li><li><a class="chapter" data-scroll="" href="#name-filter"><h4>5 &nbsp; name-filter</h4></a></li><li><a class="chapter" data-scroll="" href="#name-filter-out"><h4>6 &nbsp; name-filter-out</h4></a></li>
+                  <li><a class="chapter" data-scroll="" href="#introduction"><h4>1 &nbsp; Introduction</h4></a><a class="section" data-scroll="" href="#a-purely-functional-clojure"><h5><i>1.1 &nbsp; A Purely-Functional Clojure</i></h5></a><a class="section" data-scroll="" href="#content-addressing"><h5><i>1.2 &nbsp; Content Addressing</i></h5></a></li><li><a class="chapter" data-scroll="" href="#symbols-extract-symbols-from-expressions"><h4>2 &nbsp; symbols: Extract symbols from expressions</h4></a></li><li><a class="chapter" data-scroll="" href="#pure-compile-time-verification"><h4>3 &nbsp; pure: Compile-time Verification</h4></a><a class="section" data-scroll="" href="#stress-testing"><h5><i>3.1 &nbsp; Stress Testing</i></h5></a></li><li><a class="chapter" data-scroll="" href="#error-a-replacement-for-throw"><h4>4 &nbsp; error: A Replacement for throw</h4></a></li><li><a class="chapter" data-scroll="" href="#box"><h4>5 &nbsp; box: Evaluate expressions through an environment</h4></a></li><li><a class="chapter" data-scroll="" href="#add-ns"><h4>6 &nbsp; add-ns: Import a namespace to an environment</h4></a></li><li><a class="chapter" data-scroll="" href="#name-filter"><h4>7 &nbsp; name-filter</h4></a></li><li><a class="chapter" data-scroll="" href="#name-filter-out"><h4>8 &nbsp; name-filter-out</h4></a></li>
                 </ul>
               </nav>
             </div>
@@ -79,7 +79,7 @@
           <div class="toc">
               <nav>
                 <ul>
-                  <li><a class="chapter" data-scroll="" href="#introduction"><h4>1 &nbsp; Introduction</h4></a><a class="section" data-scroll="" href="#a-purely-functional-clojure"><h5><i>1.1 &nbsp; A Purely-Functional Clojure</i></h5></a><a class="section" data-scroll="" href="#content-addressing"><h5><i>1.2 &nbsp; Content Addressing</i></h5></a></li><li><a class="chapter" data-scroll="" href="#symbols-extract-symbols-from-expressions"><h4>2 &nbsp; symbols: Extract symbols from expressions</h4></a></li><li><a class="chapter" data-scroll="" href="#box"><h4>3 &nbsp; box: Evaluate expressions through an environment</h4></a></li><li><a class="chapter" data-scroll="" href="#add-ns"><h4>4 &nbsp; add-ns: Import a namespace to an environment</h4></a></li><li><a class="chapter" data-scroll="" href="#name-filter"><h4>5 &nbsp; name-filter</h4></a></li><li><a class="chapter" data-scroll="" href="#name-filter-out"><h4>6 &nbsp; name-filter-out</h4></a></li>
+                  <li><a class="chapter" data-scroll="" href="#introduction"><h4>1 &nbsp; Introduction</h4></a><a class="section" data-scroll="" href="#a-purely-functional-clojure"><h5><i>1.1 &nbsp; A Purely-Functional Clojure</i></h5></a><a class="section" data-scroll="" href="#content-addressing"><h5><i>1.2 &nbsp; Content Addressing</i></h5></a></li><li><a class="chapter" data-scroll="" href="#symbols-extract-symbols-from-expressions"><h4>2 &nbsp; symbols: Extract symbols from expressions</h4></a></li><li><a class="chapter" data-scroll="" href="#pure-compile-time-verification"><h4>3 &nbsp; pure: Compile-time Verification</h4></a><a class="section" data-scroll="" href="#stress-testing"><h5><i>3.1 &nbsp; Stress Testing</i></h5></a></li><li><a class="chapter" data-scroll="" href="#error-a-replacement-for-throw"><h4>4 &nbsp; error: A Replacement for throw</h4></a></li><li><a class="chapter" data-scroll="" href="#box"><h4>5 &nbsp; box: Evaluate expressions through an environment</h4></a></li><li><a class="chapter" data-scroll="" href="#add-ns"><h4>6 &nbsp; add-ns: Import a namespace to an environment</h4></a></li><li><a class="chapter" data-scroll="" href="#name-filter"><h4>7 &nbsp; name-filter</h4></a></li><li><a class="chapter" data-scroll="" href="#name-filter-out"><h4>8 &nbsp; name-filter-out</h4></a></li>
                 </ul>
               </nav>
           </div>
@@ -92,16 +92,171 @@
  (symbols {'x 'y}) =&gt; #{'x 'y}
  (symbols #{'a 'b 3 4 5}) =&gt; #{'a 'b}</code></pre></div><div><p>In a <code>let&#42;</code> special form, the bindings are removed from the returned set.</p></div><div class="code"><pre><code class="clojure">(symbols '(let* [x 1 y 2] (+ x y))) =&gt; #{'+}
  (symbols '(let* [x a] x)) =&gt; #{'a}</code></pre></div><div><p><code>symbols</code> expands macros, so it also handles the more familiar <code>let</code> form</p></div><div class="code"><pre><code class="clojure">(symbols '(let [x a] x a)) =&gt; #{'a}</code></pre></div><div><p><code>loop</code> is supported similarly.</p></div><div class="code"><pre><code class="clojure">(symbols '(loop [x a y b] a x b y c)) =&gt; #{'a 'b 'c}</code></pre></div><div><p>In the <code>fn&#42;</code> special form (used by the <code>fn</code> macro) <code>symbols</code> removes the argument names from the set.</p></div><div class="code"><pre><code class="clojure">(symbols '(fn [x y] (+ x y a))) =&gt; #{'a '+}
- (symbols '(fn foo [x y] (+ x y a))) =&gt; #{'a '+}</code></pre></div><div><p>The function name (in named functions) is also removed.</p></div><div class="code"><pre><code class="clojure">(symbols '(fn foo [x] (foo x))) =&gt; #{}</code></pre></div><div><p>Multi-arity functions are supported as well.</p></div><div class="code"><pre><code class="clojure">(symbols '(fn ([x] (+ a x))
+ (symbols '(fn foo [x y]  (+ x (foo y a)))) =&gt; #{'a '+}</code></pre></div><div><p>The function name (in named functions) is also removed.</p></div><div class="code"><pre><code class="clojure">(symbols '(fn foo [x] (foo x))) =&gt; #{}</code></pre></div><div><p>Multi-arity functions are supported as well.</p></div><div class="code"><pre><code class="clojure">(symbols '(fn ([x] (+ a x))
            ([x y] (+ b x y)))) =&gt; #{'a 'b '+}</code></pre></div><div><p><code>def</code> is not allowed inside an expression (it is allowed on the top-level, as described below).</p></div><div class="code"><pre><code class="clojure">(symbols '(def x 2)) =&gt; (throws &quot;def is not allowed&quot;)</code></pre></div><div><p>Similarly, reference to variables is not allowed.</p></div><div class="code"><pre><code class="clojure">(symbols '#'var) =&gt; (throws &quot;vars are not allowed&quot;)</code></pre></div><div><p>Quoted symbols are ignored.</p></div><div class="code"><pre><code class="clojure">(symbols ''(a b c)) =&gt; #{}</code></pre></div><div><p>In special forms such as <code>if</code> and <code>do</code>, the form's name is ignored.</p></div><div class="code"><pre><code class="clojure">(symbols '(if a b c)) =&gt; #{'a 'b 'c}
  (symbols '(do a b c)) =&gt; #{'a 'b 'c}
  (symbols '(recur a b)) =&gt; #{'a 'b}</code></pre></div><div><p>Exceptions are not supported because they use Java interop.</p></div><div class="code"><pre><code class="clojure">(symbols '(throw foo)) =&gt; (throws Exception &quot;throw is not allowed. Use error instead&quot;)
- (symbols '(try foo bar baz)) =&gt; (throws &quot;try/catch is not allowed&quot;)</code></pre></div><div><p>While <code>for</code> is a macro and not a special form, its definition makes use of Java interop, which we disallow. We therefore make <code>for</code> a special case.</p></div><div class="code"><pre><code class="clojure">(symbols '(for [x foo] (* x 2))) =&gt; #{'foo '*}</code></pre></div><div><span id="box"></span><h2><b>3 &nbsp;&nbsp; box: Evaluate expressions through an environment</b></h2></div><div><p>should return a constant for a constant</p></div><div class="code"><pre><code class="clojure">(box 3.14 {}) =&gt; 3.14</code></pre></div><div><p>should throw an exception if a symbol that exists in expr is not a key in env</p></div><div class="code"><pre><code class="clojure">(box 'x {}) =&gt; (throws &quot;symbols #{x} are not defined in the environment&quot;)</code></pre></div><div><p>should assign symbols their value in the environment</p></div><div class="code"><pre><code class="clojure">(box '(+ x 2) {'x 3 '+ *}) =&gt; 6</code></pre></div><div><p>should work with functions already defined in the environment</p></div><div class="code"><pre><code class="clojure">(let [env (update-env '(defn foo [x] (inc x)) {'inc inc})]
+ (symbols '(try foo bar baz)) =&gt; (throws &quot;try/catch is not allowed&quot;)</code></pre></div><div><p>While <code>for</code> is a macro and not a special form, its definition makes use of Java interop, which we disallow. We therefore make <code>for</code> a special case.</p></div><div class="code"><pre><code class="clojure">(symbols '(for [x foo] (* x 2))) =&gt; #{'foo '*}</code></pre></div><div><span id="pure-compile-time-verification"></span><h2><b>3 &nbsp;&nbsp; pure: Compile-time Verification</b></h2></div><div><p>A permacode module should be wrapped in a <code>permacode.core/pure</code> macro. This macro validates the underlying code under the module's own namespace. Validation involves macro expansion, and macros are expanded based on how they are defined relative to that module.</p></div><div><p>A valid set of definitions evaluates to a <code>do</code> block with the same content.</p></div><div class="code"><pre><code class="clojure">(pure
+(defn foo [x y]
+  (+ x y))
+(defn bar [x y]
+  (* x y)))
+ =expands-to=&gt; (do
+               (defn foo [x y]
+                 (+ x y))
+               (defn bar [x y]
+                 (* x y)))</code></pre></div><div><p>For definitions that use disallowed symbols <code>pure</code> throws an exception during macro expansion.</p></div><div class="code"><pre><code class="clojure">(macroexpand '(pure
+              (def some-atom (atom 0))))
+ =&gt; (throws &quot;symbols #{atom} are not allowed&quot;)</code></pre></div><div><p>Allowed symbols should be available unqualified or fully-qualified.</p></div><div class="code"><pre><code class="clojure">(pure
+(def x (+ 1 2))
+(def y (clojure.core/+ 2 3)))
+ =expands-to=&gt; (do
+               (def x (+ 1 2))
+               (def y (clojure.core/+ 2 3)))</code></pre></div><div><p>Some namespaces, such as <code>clojure.string</code> and <code>clojure.set</code> are white-listed, and all their publics are allowed.</p></div><div class="code"><pre><code class="clojure">(pure
+(def x (clojure.string/join &quot;, &quot; (clojure.set/union #{1 2} #{3}))))</code></pre></div><div><p>When namespaces are aliased (like <code>clojure.string</code> is aliased to <code>string</code> in this file), symbols referring to the alias are also allowed.</p></div><div class="code"><pre><code class="clojure">(pure
+(def x (string/join &quot;, &quot; (set/union #{1 2} #{3}))))</code></pre></div><div><span id="stress-testing"></span><h3>3.1 &nbsp;&nbsp; Stress Testing</h3></div><div><p>The following is a usage example coming from <a href='https://brosenan.github.io/cloudlog.clj/core.html'>cloudlog.clj</a>. It is supposed to be all pure, so it's a good test case...</p></div><div class="code"><pre><code class="clojure">(pure
+
+ (declare generate-rule-func)
+
+ (defmulti propagate-symbols (fn [cond symbols] (first cond)) :default :no-bindings)
+ (defmethod propagate-symbols :no-bindings [cond symbols]
+   symbols)
+
+ (defn binding-symbols [bindings cond]
+   (pureclj/symbols (map bindings (range 0 (count bindings) 2))))
+
+ (defmethod propagate-symbols 'let [cond symbols]
+   (set/union symbols (binding-symbols (second cond) cond)))
+
+ (defmethod propagate-symbols 'for [cond symbols]
+   (set/union symbols (binding-symbols (second cond) cond)))
+
+ (defmulti process-conds (fn [conds symbols] (str (class (first conds)))))
+
+                                        ; fact
+ (defmethod process-conds  &quot;class clojure.lang.IPersistentVector&quot; [conds symbols]
+   (let [target (first conds)
+         target-name (first target)]
+     (if (= (count conds) 1)
+       (do ; Target fact
+         [[(vec (rest target))] {:target-fact [target-name (count (rest target))]}])
+                                        ; Continuation
+       (let [[func meta] (generate-rule-func (first conds) (rest conds) symbols)
+             key (second target)
+             params (vec (set/intersection symbols (pureclj/symbols func)))
+             missing (set/difference (pureclj/symbols key) symbols)
+             meta {:continuation (with-meta `(fn [[~'$key$ ~@params]] ~func) meta)}]
+         (when-not (empty? missing)
+           (permacode.core/error &quot;variables &quot; missing &quot; are unbound in the key for &quot; (first target)))
+         [`[[~key ~@params]] meta]))))
+
+                                        ; guard
+ (defmethod process-conds  &quot;class clojure.lang.ISeq&quot; [conds symbols]
+   (let [cond (first conds)
+         [body meta] (process-conds (rest conds) (propagate-symbols cond symbols))
+         body (seq (concat cond [body]))
+         meta (if (string/starts-with? (str (first cond)) &quot;by&quot;)
+                (assoc meta :checked true)
+                meta)]
+     (if (= (first cond) 'for)
+       [`(apply concat ~body) meta]
+                                        ; else
+       [body meta])))
+
+ (defmacro norm-run* [vars goal]
+   (let [run `(logic/run* ~vars ~goal)]
+     (if (= (count vars) 1)
+       `(let [~'$res$ ~run]
+          (if (empty? ~'$res$)
+            nil
+            [~'$res$]))
+       run)))
+
+ (defn generate-rule-func [source-fact conds ext-symbols]
+   (let [symbols (set/difference (pureclj/symbols (rest source-fact)) ext-symbols)
+         [body meta] (process-conds conds (set/union symbols ext-symbols))
+         meta (merge meta {:source-fact [(first source-fact) (count (rest source-fact))]})
+         vars (vec symbols)
+         func `(fn [~'$input$]
+                 ~(if (empty? vars)
+                                        ; No unbound variables
+                    `(if (= ~'$input$ [~@(rest source-fact)])
+                       ~body
+                       [])
+                                        ; vars contains the unbound variables
+                    `(let [~'$poss$ (norm-run* ~vars
+                                               (logic/== ~'$input$ [~@(rest source-fact)]))]
+                       (apply concat (for [~vars ~'$poss$] 
+                                       ~body)))))]
+     [func meta]))
+
+ (defn validate-rule [metadata]
+   (loop [metadata metadata
+          link 0]
+     (when-not (:checked metadata)
+       (permacode.core/error &quot;Rule is insecure. Link &quot; link &quot; is not checked.&quot;))
+     (when (:continuation metadata)
+       (recur (-&gt; metadata :continuation meta) (inc link)))))
+
+ (defmacro defrule [rulename args source-fact &amp; body]
+   (let [conds (concat body [`[~(keyword (str *ns*) (name rulename)) ~@args]])
+         [func meta] (generate-rule-func source-fact conds #{})]
+     (validate-rule meta)
+     `(def ~rulename (with-meta ~func ~(merge meta {:ns *ns* :name (str rulename)})))))
+
+ (defn append-to-keyword [keywd suffix]
+   (keyword (namespace keywd) (str (name keywd) suffix)))
+
+ (defmacro defclause [clausename pred args-in args-out &amp; body]
+   (let [source-fact `[~(append-to-keyword pred &quot;?&quot;) ~'$unique$ ~@args-in]
+         conds (concat body [`[~(append-to-keyword pred &quot;!&quot;) ~'$unique$ ~@args-out]])
+         [func meta] (generate-rule-func source-fact conds #{})]
+     `(def ~clausename (with-meta ~func ~(merge meta {:ns *ns* :name (str clausename)})))))
+
+ (defn with* [seq]
+   (apply merge-with set/union
+          (for [fact seq]
+            (let [fact-name (first fact)
+                  metadata (meta fact)
+                  arity (-&gt; fact rest count)]
+              {[fact-name arity] #{(with-meta (vec (rest fact)) metadata)}}))))
+
+ (defn simulate* [rule factmap]
+   (let [source-fact (-&gt; rule meta :source-fact)
+         input-set (factmap source-fact)
+         after-first (into #{} (apply concat (map rule input-set)))
+         cont (-&gt; rule meta :continuation)]
+     (if cont
+       (let [next-rules (map cont after-first)]
+         (into #{} (apply concat (for [next-rule next-rules]
+                                   (simulate* (with-meta next-rule (meta cont)) factmap)))))
+                                        ;else
+       after-first)))
+
+ (defn simulate-with [rule &amp; facts]
+   (simulate* rule (with* facts)))
+
+ (defmulti fact-table (fn [[name arity]] (str (class name))))
+
+ (defmethod fact-table &quot;class clojure.lang.Named&quot; [[name arity]]
+   (str (namespace name) &quot;/&quot; (clojure.core/name name)))
+ (defmethod fact-table &quot;class clojure.lang.IFn&quot; [[name arity]]
+   (let [ns (-&gt; name meta :ns)
+         name (-&gt; name meta :name)]
+     (str ns &quot;/&quot; name)))
+ (prefer-method fact-table &quot;class clojure.lang.Named&quot; &quot;class clojure.lang.IFn&quot;)
+
+ (defmacro by [set body]
+   `(when (contains? (-&gt; ~'$input$ meta :writers) ~set)
+      ~body))
+
+ (defmacro by-anyone [body]
+   body))</code></pre></div><div><span id="error-a-replacement-for-throw"></span><h2><b>4 &nbsp;&nbsp; error: A Replacement for throw</b></h2></div><div><p>We do not allow pure code to <code>throw</code>, because throwing exceptions involves creating Java classes. Instead, we provide the <code>error</code> function, which throws an <code>Exception</code> with the given string.</p></div><div class="code"><pre><code class="clojure">(error 1000 &quot; bottles of beer on the wall&quot;) =&gt; (throws #&quot;1000 bottles of beer&quot;)</code></pre></div><div><span id="box"></span><h2><b>5 &nbsp;&nbsp; box: Evaluate expressions through an environment</b></h2></div><div><p>should return a constant for a constant</p></div><div class="code"><pre><code class="clojure">(box 3.14 {}) =&gt; 3.14</code></pre></div><div><p>should throw an exception if a symbol that exists in expr is not a key in env</p></div><div class="code"><pre><code class="clojure">(box 'x {}) =&gt; (throws &quot;symbols #{x} are not defined in the environment&quot;)</code></pre></div><div><p>should assign symbols their value in the environment</p></div><div class="code"><pre><code class="clojure">(box '(+ x 2) {'x 3 '+ *}) =&gt; 6</code></pre></div><div><p>should work with functions already defined in the environment</p></div><div class="code"><pre><code class="clojure">(let [env (update-env '(defn foo [x] (inc x)) {'inc inc})]
  (box '(foo 2) env)) =&gt; 3</code></pre></div><div><p>should work with qualified symbols as long as they are in env</p></div><div class="code"><pre><code class="clojure">(box '(clojure.core/inc 2) (add-ns 'clojure.core {})) =&gt; 3</code></pre></div><div class="code"><pre><code class="clojure">[[:chapter &quot;update-env: Update an environment based on defs&quot; :tag &quot;update-env&quot;]]</code></pre></div><div><p>should add a key to env of a def form</p></div><div class="code"><pre><code class="clojure">(update-env '(def y (inc x)) {'x 2 'inc inc}) =&gt; {'x 2 'y 3 'inc inc}</code></pre></div><div><p>should apply macros</p></div><div class="code"><pre><code class="clojure">(let [env (update-env '(defn foo [x] (inc x)) {'inc inc})
-          f (env 'foo)]
-      (f 1)) =&gt; 2</code></pre></div><div><p>should apply all defs in a do block</p></div><div class="code"><pre><code class="clojure">(update-env '(do (def x 1) (def y 2)) {}) =&gt; {'x 1 'y 2}</code></pre></div><div><span id="add-ns"></span><h2><b>4 &nbsp;&nbsp; add-ns: Import a namespace to an environment</b></h2></div><div><p>should extend env</p></div><div class="code"><pre><code class="clojure">(add-ns 'clojure.core {'x 3}) =&gt; #(contains? % 'x)</code></pre></div><div><p>should add all publics from ns</p></div><div class="code"><pre><code class="clojure">(add-ns 'clojure.core {'x 3}) =&gt; #(contains? % '+)</code></pre></div><div><p>should apply filters if supplied</p></div><div class="code"><pre><code class="clojure">(add-ns 'clojure.core [(name-filter-out #&quot;.*!&quot;)] {}) =&gt; #(not (contains? % 'swap!))</code></pre></div><div><p>should apply multiple filters if supplied</p></div><div class="code"><pre><code class="clojure">(add-ns 'clojure.core [(name-filter-out #&quot;.*!&quot;) (name-filter-out #&quot;print.*&quot;)] {}) =&gt; #(not (contains? % 'println))</code></pre></div><div><p>should return an env containing functions</p></div><div class="code"><pre><code class="clojure">(let [env (add-ns 'clojure.core {})
+     f (env 'foo)]
+ (f 1)) =&gt; 2</code></pre></div><div><p>should apply all defs in a do block</p></div><div class="code"><pre><code class="clojure">(update-env '(do (def x 1) (def y 2)) {}) =&gt; {'x 1 'y 2}</code></pre></div><div><span id="add-ns"></span><h2><b>6 &nbsp;&nbsp; add-ns: Import a namespace to an environment</b></h2></div><div><p>should extend env</p></div><div class="code"><pre><code class="clojure">(add-ns 'clojure.core {'x 3}) =&gt; #(contains? % 'x)</code></pre></div><div><p>should add all publics from ns</p></div><div class="code"><pre><code class="clojure">(add-ns 'clojure.core {'x 3}) =&gt; #(contains? % '+)</code></pre></div><div><p>should apply filters if supplied</p></div><div class="code"><pre><code class="clojure">(add-ns 'clojure.core [(name-filter-out #&quot;.*!&quot;)] {}) =&gt; #(not (contains? % 'swap!))</code></pre></div><div><p>should apply multiple filters if supplied</p></div><div class="code"><pre><code class="clojure">(add-ns 'clojure.core [(name-filter-out #&quot;.*!&quot;) (name-filter-out #&quot;print.*&quot;)] {}) =&gt; #(not (contains? % 'println))</code></pre></div><div><p>should return an env containing functions</p></div><div class="code"><pre><code class="clojure">(let [env (add-ns 'clojure.core {})
      f (env 'inc)]
- (f 2)) =&gt; 3</code></pre></div><div><p>should also add the fully-qualified names to env</p></div><div class="code"><pre><code class="clojure">(add-ns 'clojure.core {}) =&gt; #(contains? % 'clojure.core/+)</code></pre></div><div><span id="name-filter"></span><h2><b>5 &nbsp;&nbsp; name-filter</b></h2></div><div><p>should return true for env entries that  match the patter</p></div><div class="code"><pre><code class="clojure">(filter (name-filter #&quot;x+&quot;) ['x 'xx 'xy 'yy]) =&gt; '(x xx)</code></pre></div><div><span id="name-filter-out"></span><h2><b>6 &nbsp;&nbsp; name-filter-out</b></h2></div><div><p>should return true for env entries that  match the patter</p></div><div class="code"><pre><code class="clojure">(filter (name-filter-out #&quot;x+&quot;) ['x 'xx 'xy 'yy]) =&gt; '(xy yy)</code></pre></div>
+ (f 2)) =&gt; 3</code></pre></div><div><p>should also add the fully-qualified names to env</p></div><div class="code"><pre><code class="clojure">(add-ns 'clojure.core {}) =&gt; #(contains? % 'clojure.core/+)</code></pre></div><div><span id="name-filter"></span><h2><b>7 &nbsp;&nbsp; name-filter</b></h2></div><div><p>should return true for env entries that  match the patter</p></div><div class="code"><pre><code class="clojure">(filter (name-filter #&quot;x+&quot;) ['x 'xx 'xy 'yy]) =&gt; '(x xx)</code></pre></div><div><span id="name-filter-out"></span><h2><b>8 &nbsp;&nbsp; name-filter-out</b></h2></div><div><p>should return true for env entries that  match the patter</p></div><div class="code"><pre><code class="clojure">(filter (name-filter-out #&quot;x+&quot;) ['x 'xx 'xy 'yy]) =&gt; '(xy yy)</code></pre></div>
         </div>
       </div>
     </div>
