@@ -73,4 +73,45 @@ to the local environment."
  => (throws #"The first expression in a permacode source file must be an ns.  not-an-ns-expr given."))
 
 [[:chapter {:title "validate-expr: Validate a Body Expression" :tag "validate-expr"}]]
-"Once we have our local environment, we can start validating "
+"Given a local environment we can validate a body  expression.
+A declaration adds a symbol to the environment."
+(fact
+ (let [new-env (validate-expr {"" #{'foo 'bar}} '(def quux))]
+   ((new-env "") 'quux) => 'quux))
+
+"The same works with definitions as well."
+(fact
+ (let [new-env (validate-expr {"" #{'foo 'bar}} '(def quux 123))]
+   ((new-env "") 'quux) => 'quux))
+
+"Macros are expanded.  For example. `defn` is interpreted as a `def` with `fn`."
+(fact
+ (let [new-env (validate-expr {"" #{"foo" "bar"}} '(defn quux [x] x))]
+   ((new-env "") 'quux) => 'quux))
+
+"When a form is not a valid top-level form, an exception is thrown."
+(fact
+ (validate-expr {"" #{'foo 'bar}} '(let [x 2] (+ x 3)))
+ => (throws "let* is not a valid top-level form."))
+
+"For a `do`, we recurse to validate the child forms."
+(fact
+ (validate-expr {"" #{}} '(do
+                            (def foo 1)
+                            (def bar 2)))
+ => {"" #{'foo 'bar}})
+
+[[:section {:title "Validating Values"}]]
+"In definitions, the values are validated to only refer to allowed symbols."
+(fact
+ (validate-expr {"" #{'foo}} '(def bar (+ foo 2)))
+ => (throws "symbols #{+} are not allowed")
+ (validate-expr {"" #{'foo '+}} '(def bar (+ foo 2)))
+ => {"" #{'foo 'bar '+}})
+
+"In `do` blocks, symbols defined (or even declared) in previous definitions can be used in succeeding definitions."
+(fact
+ (validate-expr {"" #{}} '(do
+                            (declare foo)
+                            (def bar foo)))
+ => {"" #{'bar 'foo}})

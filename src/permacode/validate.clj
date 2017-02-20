@@ -1,4 +1,5 @@
-(ns permacode.validate)
+(ns permacode.validate
+  (:require [permacode.core :refer :all]))
 
 (defmulti validate-ns-form (fn [[form & _] env]
                              form))
@@ -20,3 +21,29 @@
   (when-not (= ns' 'ns)
     (throw (Exception. (str "The first expression in a permacode source file must be an ns.  " ns' " given."))))
   (apply merge {"" (global-env "clojure.core")} (map #(validate-ns-form % global-env) forms)))
+
+(defmulti validate-expr (fn [env expr] (first expr)))
+
+(defmethod validate-expr :default [env expr]
+  (let [expanded (macroexpand expr)]
+    (if (= expanded expr)
+      (throw (Exception. (str (first expr) " is not a valid top-level form.")))
+      ; else
+      (validate-expr env expanded))))
+
+(defmethod validate-expr 'def [env expr]
+  (when (= (count expr) 3)
+    (let [s (symbols (nth expr 2))
+          forbidden (clojure.set/difference s (env ""))]
+      (when-not (empty? forbidden)
+        (throw (Exception. (str "symbols " forbidden " are not allowed"))))))
+  (merge-with clojure.set/union env {"" #{(second expr)}}))
+
+(defmethod validate-expr 'do [env expr]
+  (loop [env env
+         exprs (rest expr)]
+    (if (empty? exprs)
+      env
+      ; else
+      (let [env (validate-expr env (first exprs))]
+        (recur env (rest exprs))))))
