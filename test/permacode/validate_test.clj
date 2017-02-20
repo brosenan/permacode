@@ -73,51 +73,51 @@ to the local environment."
  => (throws #"The first expression in a permacode source file must be an ns.  not-an-ns-expr given."))
 
 [[:chapter {:title "validate-expr: Validate a Body Expression" :tag "validate-expr"}]]
-"Given a local environment we can validate a body  expression.
+"Given a set of allowed symbols we can validate a body  expression.
 A declaration adds a symbol to the environment."
 (fact
- (let [new-env (validate-expr {"" #{'foo 'bar}} '(def quux))]
-   ((new-env "") 'quux) => 'quux))
+ (let [new-env (validate-expr #{'foo 'bar} '(def quux))]
+   (new-env 'quux) => 'quux))
 
 "The same works with definitions as well."
 (fact
- (let [new-env (validate-expr {"" #{'foo 'bar}} '(def quux 123))]
-   ((new-env "") 'quux) => 'quux))
+ (let [new-env (validate-expr #{'foo 'bar} '(def quux 123))]
+   (new-env 'quux) => 'quux))
 
 "Macros are expanded.  For example. `defn` is interpreted as a `def` with `fn`."
 (fact
- (let [new-env (validate-expr {"" #{"foo" "bar"}} '(defn quux [x] x))]
-   ((new-env "") 'quux) => 'quux))
+ (let [new-env (validate-expr #{'foo 'bar} '(defn quux [x] x))]
+   (new-env 'quux) => 'quux))
 
 "When a form is not a valid top-level form, an exception is thrown."
 (fact
- (validate-expr {"" #{'foo 'bar}} '(let [x 2] (+ x 3)))
+ (validate-expr #{'foo 'bar} '(let [x 2] (+ x 3)))
  => (throws "let* is not a valid top-level form."))
 
 "For a `do`, we recurse to validate the child forms."
 (fact
- (validate-expr {"" #{}} '(do
-                            (def foo 1)
-                            (def bar 2)))
- => {"" #{'foo 'bar}})
+ (validate-expr #{} '(do
+                       (def foo 1)
+                       (def bar 2)))
+ => #{'foo 'bar})
 
 "`defmacro`, `defmulti` and `defmethod` use Java interop when expanded.
 We allow them in permacode, by making special cases out of them."
 (fact
- (validate-expr {"" #{'clojure.core/concat 'clojure.core/list 'clojure.core/seq}} ; used by the syntax-quote
+ (validate-expr #{'clojure.core/concat 'clojure.core/list 'clojure.core/seq} ; used by the syntax-quote
                 '(defmacro foo [x y z] `(~x ~y ~z)))
- => {"" #{'foo 'clojure.core/concat 'clojure.core/list 'clojure.core/seq}}
- (validate-expr {"" #{'first}}
+ => #{'foo 'clojure.core/concat 'clojure.core/list 'clojure.core/seq}
+ (validate-expr #{'first}
                 '(defmulti bar first))
- => {"" #{'first 'bar}}
- (validate-expr {"" #{}}
+ => #{'first 'bar}
+ (validate-expr #{}
                 '(defmulti bar first))
  => (throws "symbols #{first} are not allowed")
- (validate-expr {"" #{'+}}
+ (validate-expr #{'+}
                 '(defmethod bar :x [a b]
                    (+ a b)))
- => {"" #{'+ 'bar}}
- (validate-expr {"" #{}}
+ => #{'+ 'bar}
+ (validate-expr #{}
                 '(defmethod bar c [a b]
                    (+ a b)))
  => (throws "symbols #{c +} are not allowed"))
@@ -125,14 +125,14 @@ We allow them in permacode, by making special cases out of them."
 [[:section {:title "Validating Values"}]]
 "In definitions, the values are validated to only refer to allowed symbols."
 (fact
- (validate-expr {"" #{'foo}} '(def bar (+ foo 2)))
+ (validate-expr #{'foo} '(def bar (+ foo 2)))
  => (throws "symbols #{+} are not allowed")
- (validate-expr {"" #{'foo '+}} '(def bar (+ foo 2)))
- => {"" #{'foo 'bar '+}})
+ (validate-expr #{'foo '+} '(def bar (+ foo 2)))
+ => #{'foo 'bar '+})
 
 "In `do` blocks, symbols defined (or even declared) in previous definitions can be used in succeeding definitions."
 (fact
- (validate-expr {"" #{}} '(do
-                            (declare foo)
-                            (def bar foo)))
- => {"" #{'bar 'foo}})
+ (validate-expr #{} '(do
+                       (declare foo)
+                       (def bar foo)))
+ => #{'bar 'foo})

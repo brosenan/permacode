@@ -34,10 +34,10 @@
 (defmethod validate-expr 'def [env expr]
   (when (= (count expr) 3)
     (let [s (symbols (nth expr 2))
-          forbidden (clojure.set/difference s (env ""))]
+          forbidden (clojure.set/difference s env)]
       (when-not (empty? forbidden)
         (throw (Exception. (str "symbols " forbidden " are not allowed"))))))
-  (merge-with clojure.set/union env {"" #{(second expr)}}))
+  (clojure.set/union env #{(second expr)}))
 
 (defmethod validate-expr 'do [env expr]
   (loop [env env
