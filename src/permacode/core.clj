@@ -7,6 +7,9 @@
   (apply concat (for [sym syms
                       :when (empty? (namespace sym))] [sym `(~env '~sym)])))
 
+(defn error [& args]
+  (throw (Exception. (apply str args))))
+
 (defn box [expr env]
   (let [syms (symbols expr)
         missing (difference syms (set (keys env)))]
@@ -96,5 +99,4 @@
     (validate/validate-expr allowed-symbols res)
     res))
 
-(defn error [& args]
-  (throw (Exception. (apply str args))))
+
