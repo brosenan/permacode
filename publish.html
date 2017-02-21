@@ -70,7 +70,7 @@
               <nav data-gumshoe-header>
                 <ul data-gumshoe>
                   <a data-scroll class="top" href="#page-top">TOP</a>
-                  <li><a class="chapter" data-scroll="" href="#build-plan"><h4>1 &nbsp; build-plan: Sorts Files by Dependencies</h4></a><a class="section" data-scroll="" href="#under-the-hood"><h5><i>1.1 &nbsp; Under the Hood</i></h5></a></li><li><a class="chapter" data-scroll="" href="#hash-file"><h4>2 &nbsp; hash-file: Hash a Source File</h4></a></li>
+                  <li><a class="chapter" data-scroll="" href="#build-plan"><h4>1 &nbsp; build-plan: Sorts Files by Dependencies</h4></a><a class="section" data-scroll="" href="#under-the-hood"><h5><i>1.1 &nbsp; Under the Hood</i></h5></a></li><li><a class="chapter" data-scroll="" href="#hash-file"><h4>2 &nbsp; hash-file: Hash a Source File</h4></a></li><li><a class="chapter" data-scroll="" href="#hash-all"><h4>3 &nbsp; hash-all: Putting it All Together</h4></a></li>
                 </ul>
               </nav>
             </div>
@@ -79,7 +79,7 @@
           <div class="toc">
               <nav>
                 <ul>
-                  <li><a class="chapter" data-scroll="" href="#build-plan"><h4>1 &nbsp; build-plan: Sorts Files by Dependencies</h4></a><a class="section" data-scroll="" href="#under-the-hood"><h5><i>1.1 &nbsp; Under the Hood</i></h5></a></li><li><a class="chapter" data-scroll="" href="#hash-file"><h4>2 &nbsp; hash-file: Hash a Source File</h4></a></li>
+                  <li><a class="chapter" data-scroll="" href="#build-plan"><h4>1 &nbsp; build-plan: Sorts Files by Dependencies</h4></a><a class="section" data-scroll="" href="#under-the-hood"><h5><i>1.1 &nbsp; Under the Hood</i></h5></a></li><li><a class="chapter" data-scroll="" href="#hash-file"><h4>2 &nbsp; hash-file: Hash a Source File</h4></a></li><li><a class="chapter" data-scroll="" href="#hash-all"><h4>3 &nbsp; hash-all: Putting it All Together</h4></a></li>
                 </ul>
               </nav>
           </div>
@@ -107,7 +107,14 @@
                                '[(ns example.foo2
                                    (:require [clojure.string :as str]))
                                  (some-thing)]))</code></pre></div><div class="code"><pre><code class="clojure">(build-plan [foo2]) =&gt; [foo2]</code></pre></div><div><span id="under-the-hood"></span><h3>1.1 &nbsp;&nbsp; Under the Hood</h3></div><div><p>The helper function <code>get-ns</code> takes a file object and returns its first expression. For example:</p></div><div class="code"><pre><code class="clojure">(get-ns bar) =&gt; '(ns example.bar
-                  (:require [example.foo]))</code></pre></div><div><span id="hash-file"></span><h2><b>2 &nbsp;&nbsp; hash-file: Hash a Source File</b></h2></div><div><p>Now that we have our sorted list of files we can go one-by-one and </p></div>
+                  (:require [example.foo]))</code></pre></div><div><span id="hash-file"></span><h2><b>2 &nbsp;&nbsp; hash-file: Hash a Source File</b></h2></div><div><p>Now that we have our sorted list of files we can go one-by-one and <a href='#hasher.html#introduction'>hash</a> it.</p></div><div class="code"><pre><code class="clojure">(def hasher (hasher/nippy-multi-hasher (hasher/atom-store)))</code></pre></div><div><p>For this, we start with a map containing the hash codes for all the modules we already traversed, a file object we wish to hash, and a hasher pair to hash it with. The function returns a hash code for the current file.</p></div><div class="code"><pre><code class="clojure">(def foo-hash (hash-file hasher foo {}))</code></pre></div><div class="code"><pre><code class="clojure">(let [[hash unhash] hasher]
+ (unhash foo-hash) =&gt; '[(ns example.foo)
+                        (some-thing)])</code></pre></div><div><p>When a module has dependencies, the <code>ns</code> expression at its head is modified to reflect these dependencies.</p></div><div class="code"><pre><code class="clojure">(def bar-hash (hash-file hasher bar {'example.foo foo-hash}))</code></pre></div><div class="code"><pre><code class="clojure">(let [[hash unhash] hasher]
+ (unhash bar-hash) =&gt; `[(~'ns ~'example.bar
+                         (:require [~foo-hash]))
+                        (~'some-thing-else)])</code></pre></div><div><span id="hash-all"></span><h2><b>3 &nbsp;&nbsp; hash-all: Putting it All Together</b></h2></div><div><p>The complete process of hashing starts with a directory (as a file object).  <code>hash-all</code> performs the following:</p><ol><li>Finds all <code>.clj</code> files in that directory (recursively).</li><li>Sorts them (by calling <code>build-plan</code>) according to dependencies.</li><li>Hashes each file, replacing dependencies with hashes as needed.</li></ol><p>The return value is a map from namespace to corresponding hash.</p></div><div class="code"><pre><code class="clojure">(def ns-hash
+  (hash-all hasher (io/file example-dir)))</code></pre></div><div class="code"><pre><code class="clojure">(ns-hash 'example.foo) =&gt; foo-hash
+ (ns-hash 'example.bar) =&gt; bar-hash</code></pre></div>
         </div>
       </div>
     </div>
