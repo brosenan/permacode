@@ -30,3 +30,32 @@
         (throw (Exception. (str "Unmet dependency: " item)))))
     (into [] (comp (map ns-to-file)
                    (filter #(not= % :external))) sort)))
+
+(defn convert-dep [dep hashes]
+  (if-let [hash (hashes dep)]
+    hash
+    ; else
+    dep))
+
+(defn convert-clauses [clauses hashes]
+  (for [[require' & specs] clauses
+        [dep & opts] specs]
+    [require' (concat [(convert-dep dep hashes)] opts)]))
+
+(defn hash-file [[hash unhash] file hashes]
+  (let [content (-> (str "[" (slurp file)  "]")
+                    read-string)
+        [[ns' name & clauses] & exprs] content]
+    (hash (concat [(concat [ns' name] (convert-clauses clauses hashes))] exprs))))
+
+(defn hash-all [hasher dir]
+  (let [files (into [] (filter #(re-matches #".*\.clj" (str %))) (file-seq dir))
+        plan (build-plan files)]
+    (loop [hashes {}
+           plan plan]
+      (if (empty? plan)
+        hashes
+        ; else
+        (let [current (first plan)
+              [ns' name & clauses] (get-ns current)]
+          (recur (assoc hashes name (hash-file hasher current hashes)) (rest plan)))))))

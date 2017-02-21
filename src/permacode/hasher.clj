@@ -33,3 +33,11 @@
    (fn [key]
      (let [f (java.io.File. repo key)]
        (slurp-bytes f)))])
+
+(defn atom-store []
+  (let [store (atom {})]
+    [(fn [key content]
+       (swap! store assoc key content)
+       nil)
+     (fn [key]
+       (@store key))]))

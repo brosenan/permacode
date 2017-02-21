@@ -1,5 +1,6 @@
 (ns permacode.publish-test
   (:require [permacode.publish :refer :all]
+            [permacode.hasher :as hasher]
             [clojure.java.io :as io]
             [midje.sweet :refer :all]))
 
@@ -51,4 +52,39 @@ For example:"
                     (:require [example.foo])))
 
 [[:chapter {:title "hash-file: Hash a Source File" :tag "hash-file"}]]
-"Now that we have our sorted list of files we can go one-by-one and "
+"Now that we have our sorted list of files we can go one-by-one and [hash](#hasher.html#introduction) it."
+
+(def hasher (hasher/nippy-multi-hasher (hasher/atom-store)))
+
+"For this, we start with a map containing the hash codes for all the modules we already traversed,
+a file object we wish to hash, and a hasher pair to hash it with.
+The function returns a hash code for the current file."
+
+(def foo-hash (hash-file hasher foo {}))
+
+(fact
+ (let [[hash unhash] hasher]
+   (unhash foo-hash) => '[(ns example.foo)
+                          (some-thing)]))
+
+"When a module has dependencies, the `ns` expression at its head is modified to reflect these dependencies."
+(def bar-hash (hash-file hasher bar {'example.foo foo-hash}))
+(fact
+ (let [[hash unhash] hasher]
+   (unhash bar-hash) => `[(~'ns ~'example.bar
+                           (:require [~foo-hash]))
+                          (~'some-thing-else)]))
+
+[[:chapter {:title "hash-all: Putting it All Together" :tag "hash-all"}]]
+"The complete process of hashing starts with a directory (as a file object).  `hash-all` performs the following:
+1. Finds all `.clj` files in that directory (recursively).
+2. Sorts them (by calling `build-plan`) according to dependencies.
+3. Hashes each file, replacing dependencies with hashes as needed.
+
+The return value is a map from namespace to corresponding hash."
+(def ns-hash
+  (hash-all hasher (io/file example-dir)))
+
+(fact
+ (ns-hash 'example.foo) => foo-hash
+ (ns-hash 'example.bar) => bar-hash)

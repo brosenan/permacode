@@ -89,6 +89,15 @@ has read and write permissions.  This is the `repo` directory, where all objects
    ; This is basically what retr does...
    (-> "abcd" retr (String. "UTF-8")) => "foo bar"))
 
+[[:chapter {:title "atom-store: Store Inside an Atom" :tag "atom-store"}]]
+"For testing it is often convenient to store hashed content in-memory.
+`atom-store` uses an `atom` for that."
+(fact
+ (let [[store retr] (atom-store)]
+   (store "abcd" (.getBytes "foo bar" "UTF-8")) => nil
+   (-> "abcd" retr (String. "UTF-8")) => "foo bar"))
+
+
 [[:chapter {:title "Integration"}]]
 "Let's create a `nippy-multi-hasher` pair that uses local files for storage."
 (def hpair (nippy-multi-hasher (file-store repo)))
