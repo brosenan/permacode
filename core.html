@@ -241,21 +241,25 @@
    body))</code></pre></div><div><span id="error-a-replacement-for-throw"></span><h2><b>3 &nbsp;&nbsp; error: A Replacement for throw</b></h2></div><div><p>We do not allow pure code to <code>throw</code>, because throwing exceptions involves creating Java classes. Instead, we provide the <code>error</code> function, which throws an <code>Exception</code> with the given string.</p></div><div class="code"><pre><code class="clojure">(error 1000 &quot; bottles of beer on the wall&quot;) =&gt; (throws #&quot;1000 bottles of beer&quot;)</code></pre></div><div><span id="perm-require-load-a-hashed-namespace"></span><h2><b>4 &nbsp;&nbsp; perm-require: Load a Hashed Namespace</b></h2></div><div><p>When we have a hash-code that represents a permacode namespace, we need to <code>perm-require</code> it so that it becomes available for programs.</p></div><div><p>The <code>perm-require</code> function takes a hash code and possibly an alias, and loads the module along with its dependencies, similar to the <code>clojure.core/require</code> function.</p></div><div><p>For <code>perm-require</code> to work, it needs a <a href='hasher.html'>hasher</a>. <code>perm-require</code> assumes a hasher is provided in the dynamic variable <code>&#42;hasher&#42;</code>.</p></div><div class="code"><pre><code class="clojure">(perm-require 'abcd) =&gt; (throws &quot;When calling perm-require, the *hasher* variable must be bound&quot;)</code></pre></div><div><p>If the hash's namespace is already loaded, we return.</p></div><div class="code"><pre><code class="clojure">(def hasher (hasher/nippy-multi-hasher (hasher/atom-store)))</code></pre></div><div class="code"><pre><code class="clojure">(binding [*hasher* hasher]
  (perm-require 'abcd) =&gt; nil
  (provided
-  (find-ns 'abcd) =&gt; :something))</code></pre></div><div><p>If the namespace if not loaded, the code is retrieved from the hasher.</p></div><div class="code"><pre><code class="clojure">(def unhash-called (atom false))
+  (find-ns 'abcd) =&gt; :something))</code></pre></div><div><p>If the namespace if not loaded, the code is retrieved from the hasher.</p></div><div class="code"><pre><code class="clojure">(def hash-to-require (symbol (str &quot;abcd&quot; (rand-int 10000))))
+(def unhash-called (atom false))
 (def mock-content '[(ns foo
                       (:require [permacode.core :as perm]))
                     (perm/pure
-                     (something)
-                     (something-else))])
+                     (defn f [x] (+ 1 x)))])
 (defn mock-unhash [hash]
-  (assert (= hash &quot;abcd&quot;))
+  (assert (= hash (str hash-to-require)))
   (swap! unhash-called not)
   mock-content
 )</code></pre></div><div><p>After retrieving the code it is <code>eval</code>uated in the new namespace.</p></div><div class="code"><pre><code class="clojure">(binding [*hasher* [nil mock-unhash]]
- (perm-require 'abcd) =&gt; nil
+ (perm-require hash-to-require) =&gt; nil
  (provided
-  (find-ns 'abcd) =&gt; nil)
- @unhash-called =&gt; true)</code></pre></div>
+  (find-ns hash-to-require) =&gt; nil)
+ @unhash-called =&gt; true
+ (find-ns hash-to-require) =not=&gt; nil?
+ ((ns-aliases hash-to-require) 'perm) =not=&gt; nil?
+ (let [f @((ns-publics hash-to-require) 'f)]
+   (f 2)) =&gt; 3)</code></pre></div>
         </div>
       </div>
     </div>
