@@ -5,18 +5,12 @@
 
 [[:chapter {:title "Introduction"}]]
 "Permacode validation is intended to make sure that a give Clojure source file conforms to the
-permacode sub-language.
-Validation starts with a *global environment*, listing all the available namespaces and symbols within them.
-The global environment is consulted when validating the `ns` expression, expected to be the first s-expression
-in each source file.  Permacode supports only a subset of what you can do in an `ns` expression in Clojure
-(see [validate-ns](#validate-ns)).
-Then result of validating the `ns` expression is a *local environment*, which lists the namespaces and
-symbols available to expressions *within this source file*."
+permacode sub-language."
 
-"Validating an expression is done by expanding all macros, exposing a hand-picked 
-number of forms allowed at the top level.  We use the [symbols](core.html#symbols) function to query which
-symbols are used by each expression and only allow those that use expressions that are part of the local environment.
-The `symbols` function itself enforces which special forms are allowed inside an expression."
+"Validation is a two-step process.  Its first part is done on a source file that has been read somehow,
+and makes sure that it has all the safeguards necessary for the second part to kick in.
+The second part is done with the `pure` macro, at compile time.
+It makes sure that only allowed language constructs are used."
 
 [[:section {:title "Environment Representation"}]]
 "The global environment is represented as a *map* where the keys are *names of namespaces* (strings)
@@ -144,3 +138,9 @@ We allow them in permacode, by making special cases out of them."
                        (declare foo)
                        (def bar foo)))
  => #{'bar 'foo})
+
+"Comments (that expand to `nil`) are allowed as top-level expressions."
+(fact
+ (validate-expr #{} '(comment
+                       (foo bar)))
+ => #{})

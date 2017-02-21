@@ -64,3 +64,6 @@
 (defmethod validate-expr 'prefer-method [env expr]
   (validate-value env (vec (rest expr)))
   env)
+
+(defmethod validate-expr nil [env expr]
+  env)
