@@ -94,6 +94,7 @@
   [:retr hash])
 (defn mock-hash [bin]
   [:hash bin])
+(defn mock-unhash [hash])
 
 (def hpair (hasher-pair [mock-ser mock-deser] mock-hash [mock-store mock-retr]))</code></pre></div><div class="code"><pre><code class="clojure">hpair =&gt; vector?</code></pre></div><div><p>The <code>hasher</code> serializes the s-expression and then calls the hash function on it</p></div><div class="code"><pre><code class="clojure">(let [hasher (first hpair)]
  (hasher :some-s-expr) =&gt; [:hash [:ser :some-s-expr]])</code></pre></div><div><p>As side-effect, hashing stores the serialized content under the hash.</p></div><div class="code"><pre><code class="clojure">@last-stored =&gt; [[:hash [:ser :some-s-expr]] [:ser :some-s-expr]]</code></pre></div><div><p>The <code>unhasher</code> retrieves the content by its hash an de-serializes it.</p></div><div class="code"><pre><code class="clojure">(let [unhasher (second hpair)]
