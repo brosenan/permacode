@@ -29,4 +29,8 @@
                     "validate"
                     {:input "test/permacode/validate_test.clj"
                      :title "validate"
-                     :subtitle "Static Analysis"}}})
+                     :subtitle "Static Analysis"}
+                    "symbols"
+                    {:input "test/permacode/symbols_test.clj"
+                     :title "symbols"
+                     :subtitle "Extracting Symbols Used by Expressions"}}})
