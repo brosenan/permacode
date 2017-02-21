@@ -37,3 +37,4 @@ git push $SSH_REPO $TARGET_BRANCH
 
 # Clean up test data
 rm -rf /tmp/file-store-repo*
+rm -rf /tmp/permacode.publish/example/

@@ -6,7 +6,8 @@
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/core.logic "0.8.11"]
                  [mvxcvi/multihash "2.0.1"]
-                 [com.taoensso/nippy "2.13.0"]]
+                 [com.taoensso/nippy "2.13.0"]
+                 [aysylu/loom "1.0.0"]]
   :profiles {:dev {:dependencies [[midje "1.8.3"]
                                   [im.chit/lucid.publish "1.2.8"]
                                   [im.chit/hara.string.prose "2.4.8"]]
@@ -33,4 +34,8 @@
                     "symbols"
                     {:input "test/permacode/symbols_test.clj"
                      :title "symbols"
-                     :subtitle "Extracting Symbols Used by Expressions"}}})
+                     :subtitle "Extracting Symbols Used by Expressions"}
+                    "publish"
+                    {:input "test/permacode/publish_test.clj"
+                     :title "publish"
+                     :subtitle "Store Local Code and Get Hashes"}}})

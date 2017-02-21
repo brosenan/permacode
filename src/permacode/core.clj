@@ -11,7 +11,7 @@
   (throw (Exception. (apply str args))))
 
 (def core-white-list
-  #{'+ '- '* '/ '= '== '!= 'inc 'dec
+  #{'+ '- '* '/ '= '== 'not= 'inc 'dec
     'map 'filter 'reduce 'into
     'count 'range 'apply 'concat
     'first 'second 'nth 'rest
