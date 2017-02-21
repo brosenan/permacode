@@ -52,7 +52,7 @@ For example:"
                     (:require [example.foo])))
 
 [[:chapter {:title "hash-file: Hash a Source File" :tag "hash-file"}]]
-"Now that we have our sorted list of files we can go one-by-one and [hash](#hasher.html#introduction) it."
+"Now that we have our sorted list of files we can go one-by-one and [hash](hasher.html#introduction) it."
 
 (def hasher (hasher/nippy-multi-hasher (hasher/atom-store)))
 

@@ -19,7 +19,6 @@
                               [(symbol name) :external]))
         ns-to-file (into ns-to-file (for [[[ns' name & _] file] ns-seq]
                                       [name file]))
-        _ (println ns-to-file)
         edges (for [[[ns' name & clauses] _] ns-seq
                     [require' [dep & _]] clauses]
                 [dep name])

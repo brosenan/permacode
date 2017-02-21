@@ -46,4 +46,14 @@
     (validate/validate-expr allowed-symbols res)
     res))
 
+(def ^:dynamic *hasher* nil)
+
+(defn perm-require [hash]
+  (when (= *hasher* nil)
+    (throw (Exception. "When calling perm-require, the *hasher* variable must be bound")))
+  (if (find-ns hash)
+    nil
+    ; else
+    (let [[hasher unhasher] *hasher*
+          content (unhasher (str hash))])))
 

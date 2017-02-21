@@ -35,6 +35,7 @@ s-expressions into a hash-code, and `unhasher` is a function that converts hash 
   [:retr hash])
 (defn mock-hash [bin]
   [:hash bin])
+(defn mock-unhash [hash])
 
 (def hpair (hasher-pair [mock-ser mock-deser] mock-hash [mock-store mock-retr]))
 (fact
