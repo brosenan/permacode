@@ -296,14 +296,14 @@ similar to the `clojure.core/require` function."
     (find-ns 'abcd) => :something)))
 
 "If the namespace if not loaded, the code is retrieved from the hasher."
+(def hash-to-require (symbol (str "abcd" (rand-int 10000))))
 (def unhash-called (atom false))
 (def mock-content '[(ns foo
                       (:require [permacode.core :as perm]))
                     (perm/pure
-                     (something)
-                     (something-else))])
+                     (defn f [x] (+ 1 x)))])
 (defn mock-unhash [hash]
-  (assert (= hash "abcd"))
+  (assert (= hash (str hash-to-require)))
   (swap! unhash-called not)
   mock-content
 )
@@ -311,7 +311,11 @@ similar to the `clojure.core/require` function."
 "After retrieving the code it is `eval`uated in the new namespace."
 (fact
  (binding [*hasher* [nil mock-unhash]]
-   (perm-require 'abcd) => nil
+   (perm-require hash-to-require) => nil
    (provided
-    (find-ns 'abcd) => nil)
-   @unhash-called => true))
+    (find-ns hash-to-require) => nil)
+   @unhash-called => true
+   (find-ns hash-to-require) =not=> nil?
+   ((ns-aliases hash-to-require) 'perm) =not=> nil?
+   (let [f @((ns-publics hash-to-require) 'f)]
+     (f 2)) => 3))

@@ -21,7 +21,7 @@
     'meta 'with-meta
     'assoc 'assoc-in 'merge 'merge-with
     '*ns* ; TBD
-    })
+    'defn 'defmacro})
 
 (def white-listed-ns
   #{"clojure.set" "clojure.string" "permacode.core"})
@@ -55,5 +55,14 @@
     nil
     ; else
     (let [[hasher unhasher] *hasher*
-          content (unhasher (str hash))])))
+          content (unhasher (str hash))
+          [ns' name & clauses] (first content)]
+      (do
+        (in-ns hash)
+        (refer-clojure :only (vec core-white-list))
+        (doseq [[req' & specs] clauses
+                spec specs]
+          (require spec)
+          (eval (cons 'do (rest content))))
+        nil))))
 
