@@ -26,11 +26,8 @@ whether some symbol is inside the environment or not.  The function `(constantly
 to indicate that all members of a namespace are game."
 
 "Below is an example for a global environment definition."
-(defn core-symbols [name]
-  (every? #(% name) safe-filters))
-
 (def global-env
-  {"clojure.core" core-symbols
+  {"clojure.core" core-white-list
    "clojure.string" (constantly true)
    "clojure.set" (constantly true)
    "my.proj.core" (constantly true)
@@ -40,7 +37,7 @@ to indicate that all members of a namespace are game."
 "`validate-ns` takes a global environment and an `ns` expression.
 For a trivial `ns` expression it returns a local environment containing only the default namespace."
 (fact
- (validate-ns '(ns foo.bar) global-env) => {"" core-symbols})
+ (validate-ns '(ns foo.bar) global-env) => {"" core-white-list})
 
 "If simple `:require` blocks are present, the corresponding entries from the global environment are copied
 to the local environment."
@@ -49,7 +46,7 @@ to the local environment."
                  (:require [clojure.string]
                           [clojure.set])
                  (:require [my.proj.core])) global-env)
- => {"" core-symbols
+ => {"" core-white-list
      "clojure.string" (global-env "clojure.string")
      "clojure.set" (global-env "clojure.set")
      "my.proj.core" (global-env "my.proj.core")})
@@ -58,7 +55,7 @@ to the local environment."
 (fact
  (validate-ns '(ns foo.bar
                  (:require [clojure.string :as string])) global-env)
- => {"" core-symbols
+ => {"" core-white-list
      "string" (global-env "clojure.string")})
 
 "If a `:require` refers to a namespace that is not in the environment, an exception is thrown."
