@@ -1,7 +1,9 @@
 (ns permacode.validate-test
   (:require [permacode.core :refer :all]
             [permacode.validate :refer :all]
-            [midje.sweet :refer :all]))
+            [permacode.hasher :as hasher]
+            [midje.sweet :refer :all]
+            [clojure.string :as string]))
 
 [[:chapter {:title "Introduction"}]]
 "Permacode validation is intended to make sure that a give Clojure source file conforms to the
@@ -152,3 +154,67 @@ We allow them in permacode, by making special cases out of them."
  (validate-expr #{} '(comment
                        (foo bar)))
  => #{})
+[[:chapter {:title "perm-require: Load a Hashed Namespace"}]]
+"When we have a hash-code that represents a permacode namespace, we need to `perm-require` it so that it becomes available
+for programs."
+
+"The `perm-require` function takes a hash code and possibly an alias, and loads the module along with its dependencies,
+similar to the `clojure.core/require` function."
+
+"For `perm-require` to work, it needs a [hasher](hasher.html).
+`perm-require` assumes a hasher is provided in the dynamic variable `*hasher*`."
+
+(fact
+ (perm-require 'perm.abcd) => (throws "When calling perm-require, the *hasher* variable must be bound"))
+
+"If the hash's namespace is already loaded, we return."
+(def hasher (hasher/nippy-multi-hasher (hasher/atom-store)))
+
+(fact
+ (binding [*hasher* hasher]
+   (perm-require 'perm.abcd) => nil
+   (provided
+    (find-ns 'perm.abcd) => :something)))
+
+"If the namespace if not loaded, the code is retrieved from the hasher."
+(def hash-to-require (symbol (str "perm.abcd" (rand-int 10000))))
+(def unhash-called (atom false))
+(def mock-content '[(ns foo
+                      (:require [permacode.core :as perm]))
+                    (perm/pure
+                     (defn f [x] (+ 1 x)))])
+(defn mock-unhash [hash]
+  (assert (= hash (-> hash-to-require str (string/replace-first "perm." ""))))
+  (swap! unhash-called not)
+  mock-content)
+
+"After retrieving the code it is `eval`uated in the new namespace."
+(fact
+ (binding [*hasher* [nil mock-unhash]]
+   (perm-require hash-to-require) => nil
+   (provided
+    (find-ns hash-to-require) => nil)
+   @unhash-called => true
+   (find-ns hash-to-require) =not=> nil?
+   ((ns-aliases hash-to-require) 'perm) =not=> nil?
+   (let [f @((ns-publics hash-to-require) 'f)]
+     (f 2)) => 3))
+
+"If the header requires a forbidden module, an exception is thrown."
+(def mock-content '[(ns foo
+                      (:require [clojure.java.io]))])
+(def hash-to-require (symbol (str "abcd" (rand-int 10000)))) ; Fresh namespace
+(fact
+ (binding [*hasher* [nil mock-unhash]]
+   (perm-require hash-to-require) => (throws "Namespace clojure.java.io is not approved for permacode")))
+
+"When a module `:require`s some other permacode module, `perm-require` recursively loads it."
+(def mock-content '[(ns foo
+                      (:require [perm.FOOBAR1234 :as foobar]))])
+(def hash-to-require (symbol (str "abcd" (rand-int 10000)))) ; Fresh namespace
+(fact
+ (binding [*hasher* [nil mock-unhash]]
+   (perm-require hash-to-require) => nil
+   (provided
+    (find-ns hash-to-require) => nil
+    (find-ns 'perm.FOOBAR1234) => :something)))

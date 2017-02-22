@@ -1,5 +1,5 @@
 (ns permacode.publish
-  (:require [permacode.core :as core]
+  (:require [permacode.validate :as validate]
             [loom.graph :as graph]
             [loom.alg :as alg]
             [clojure.java.io :as io]))
@@ -15,7 +15,7 @@
 
 (defn build-plan [seq]
   (let [ns-seq (map (pair-fn get-ns identity) seq)
-        ns-to-file (into {} (for [name core/white-listed-ns]
+        ns-to-file (into {} (for [name validate/white-listed-ns]
                               [(symbol name) :external]))
         ns-to-file (into ns-to-file (for [[[ns' name & _] file] ns-seq]
                                       [name file]))
