@@ -284,29 +284,28 @@ similar to the `clojure.core/require` function."
 `perm-require` assumes a hasher is provided in the dynamic variable `*hasher*`."
 
 (fact
- (perm-require 'abcd) => (throws "When calling perm-require, the *hasher* variable must be bound"))
+ (perm-require 'perm.abcd) => (throws "When calling perm-require, the *hasher* variable must be bound"))
 
 "If the hash's namespace is already loaded, we return."
 (def hasher (hasher/nippy-multi-hasher (hasher/atom-store)))
 
 (fact
  (binding [*hasher* hasher]
-   (perm-require 'abcd) => nil
+   (perm-require 'perm.abcd) => nil
    (provided
-    (find-ns 'abcd) => :something)))
+    (find-ns 'perm.abcd) => :something)))
 
 "If the namespace if not loaded, the code is retrieved from the hasher."
-(def hash-to-require (symbol (str "abcd" (rand-int 10000))))
+(def hash-to-require (symbol (str "perm.abcd" (rand-int 10000))))
 (def unhash-called (atom false))
 (def mock-content '[(ns foo
                       (:require [permacode.core :as perm]))
                     (perm/pure
                      (defn f [x] (+ 1 x)))])
 (defn mock-unhash [hash]
-  (assert (= hash (str hash-to-require)))
+  (assert (= hash (-> hash-to-require str (string/replace-first "perm." ""))))
   (swap! unhash-called not)
-  mock-content
-)
+  mock-content)
 
 "After retrieving the code it is `eval`uated in the new namespace."
 (fact
@@ -319,3 +318,22 @@ similar to the `clojure.core/require` function."
    ((ns-aliases hash-to-require) 'perm) =not=> nil?
    (let [f @((ns-publics hash-to-require) 'f)]
      (f 2)) => 3))
+
+"If the header requires a forbidden module, an exception is thrown."
+(def mock-content '[(ns foo
+                      (:require [clojure.java.io]))])
+(def hash-to-require (symbol (str "abcd" (rand-int 10000)))) ; Fresh namespace
+(fact
+ (binding [*hasher* [nil mock-unhash]]
+   (perm-require hash-to-require) => (throws "Namespace clojure.java.io is not approved for permacode")))
+
+"When a module `:require`s some other permacode module, `perm-require` recursively loads it."
+(def mock-content '[(ns foo
+                      (:require [perm.FOOBAR1234 :as foobar]))])
+(def hash-to-require (symbol (str "abcd" (rand-int 10000)))) ; Fresh namespace
+(fact
+ (binding [*hasher* [nil mock-unhash]]
+   (perm-require hash-to-require) => nil
+   (provided
+    (find-ns hash-to-require) => nil
+    (find-ns 'perm.FOOBAR1234) => :something)))

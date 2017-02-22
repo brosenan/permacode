@@ -71,10 +71,14 @@ The function returns a hash code for the current file."
 (def bar-hash (hash-file hasher bar {'example.foo foo-hash}))
 (fact
  (let [[hash unhash] hasher]
-   (unhash bar-hash) => `[(~'ns ~'example.bar
-                           (:require [~foo-hash]))
-                          (~'some-thing-else)]))
+   (unhash bar-hash) => '[(ns example.bar
+                           (:require [perm.Qmaoij9dS8Wukzjexun4uNs6iBzvU7rU8iMK6zDA7g74dm]))
+                          (some-thing-else)]))
 
+"We add a `perm.` to the hash to mark it as a permacode hash.  
+Later, when we validate a module, we allow it to require any module starting with this prefix.
+For this reason it is **highly important** that software projects that use permacode do not
+name any modules `perm.*`."
 [[:chapter {:title "hash-all: Putting it All Together" :tag "hash-all"}]]
 "The complete process of hashing starts with a directory (as a file object).  `hash-all` performs the following:
 1. Finds all `.clj` files in that directory (recursively).

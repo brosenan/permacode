@@ -1,5 +1,6 @@
 (ns permacode.validate
-  (:require [permacode.symbols :refer :all]))
+  (:require [permacode.symbols :refer :all]
+            [clojure.string :as str]))
 
 (defmulti validate-ns-form (fn [[form & _] env]
                              form))
@@ -15,7 +16,10 @@
                    (if ns-content
                      {alias ns-content}
                      ; else
-                     (throw (Exception. (str "Namespace " ns-name " is not approved for permacode"))))))))
+                     (if (str/starts-with? (str ns-name) "perm.")
+                       {}
+                       ; else
+                       (throw (Exception. (str "Namespace " ns-name " is not approved for permacode")))))))))
 
 (defn validate-ns [[ns' name & forms] global-env]
   (when-not (= ns' 'ns)

@@ -1,7 +1,8 @@
 (ns permacode.core
   (:use [clojure.set :exclude [project]])
   (:require [permacode.validate :as validate]
-            [permacode.symbols :refer :all]))
+            [permacode.symbols :refer :all]
+            [clojure.string :as str]))
 
 (defn ^:private create-bindings [syms env]
   (apply concat (for [sym syms
@@ -48,21 +49,30 @@
 
 (def ^:dynamic *hasher* nil)
 
-(defn perm-require [hash]
+(defn perm-require [module]
   (when (= *hasher* nil)
     (throw (Exception. "When calling perm-require, the *hasher* variable must be bound")))
-  (if (find-ns hash)
+  (if (find-ns module)
     nil
     ; else
-    (let [[hasher unhasher] *hasher*
-          content (unhasher (str hash))
-          [ns' name & clauses] (first content)]
-      (do
-        (in-ns hash)
+    (let [hash (-> module str (str/replace-first "perm." ""))
+          old-ns (symbol (str *ns*))
+          [hasher unhasher] *hasher*
+          content (unhasher hash)
+          [ns' name & clauses] (first content)
+          validation-env (into {} (map (fn [name] [name :something])) white-listed-ns)]
+      (validate/validate-ns (first content) validation-env)
+      (try
+        (in-ns module)
         (refer-clojure :only (vec core-white-list))
         (doseq [[req' & specs] clauses
                 spec specs]
-          (require spec)
+          (if (str/starts-with? (str (first spec)) "perm.")
+            (perm-require (first spec))
+            ; else
+            (require spec))
           (eval (cons 'do (rest content))))
-        nil))))
+        nil
+        (finally
+          (in-ns old-ns))))))
 

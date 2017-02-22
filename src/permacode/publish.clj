@@ -32,7 +32,7 @@
 
 (defn convert-dep [dep hashes]
   (if-let [hash (hashes dep)]
-    hash
+    (symbol (str "perm." hash))
     ; else
     dep))
 

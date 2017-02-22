@@ -63,6 +63,14 @@ to the local environment."
  (validate-ns '(not-an-ns-expr foo.bar) global-env)
  => (throws #"The first expression in a permacode source file must be an ns.  not-an-ns-expr given."))
 
+"Permacode modules can `:require` other permacode modules by naming them as `perm.*` where `*` is replaecd
+with their hash code.
+We consider `:require`ing such a module safe."
+(fact
+ (validate-ns '(ns foo.bar
+                 (:require [perm.ABCD1234])) global-env)
+ =not=> (throws))
+
 [[:chapter {:title "validate-expr: Validate a Body Expression" :tag "validate-expr"}]]
 "Given a set of allowed symbols we can validate a body  expression.
 A declaration adds a symbol to the environment."
