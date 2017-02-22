@@ -2,7 +2,8 @@
   (:require [permacode.validate :as validate]
             [loom.graph :as graph]
             [loom.alg :as alg]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [clojure.string :as string]))
 
 (defn get-ns [file]
   (with-open [f (java.io.PushbackReader. (io/reader file))]
@@ -22,7 +23,9 @@
         edges (for [[[ns' name & clauses] _] ns-seq
                     [require' [dep & _]] clauses]
                 [dep name])
-        graph (apply graph/digraph edges)
+        nodes (set (map second edges))
+        edges (filter (fn [[dep name]] (not (string/starts-with? (str dep) "perm."))) edges)
+        graph (apply graph/digraph (concat edges nodes))
         sort (alg/topsort graph)]
     (doseq [item sort]
       (when-not (ns-to-file item)
@@ -32,7 +35,7 @@
 
 (defn convert-dep [dep hashes]
   (if-let [hash (hashes dep)]
-    (symbol (str "perm." hash))
+    hash
     ; else
     dep))
 
@@ -44,8 +47,9 @@
 (defn hash-file [[hash unhash] file hashes]
   (let [content (-> (str "[" (slurp file)  "]")
                     read-string)
-        [[ns' name & clauses] & exprs] content]
-    (hash (concat [(concat [ns' name] (convert-clauses clauses hashes))] exprs))))
+        [[ns' name & clauses] & exprs] content
+        hash-code (hash (concat [(concat [ns' name] (convert-clauses clauses hashes))] exprs))]
+    (symbol (str "perm." hash-code))))
 
 (defn hash-all [hasher dir]
   (let [files (into [] (filter #(re-matches #".*\.clj" (str %))) (file-seq dir))

@@ -2,7 +2,10 @@
   (:require [permacode.core :refer :all]
             [permacode.hasher :as hasher]
             [permacode.hasher-test :as hasher-test]
-            [midje.sweet :refer :all])
+            [permacode.publish :as publish]
+            [permacode.validate :as validate]
+            [midje.sweet :refer :all]
+            [clojure.java.io :as io])
   (:require [permacode.symbols :as pureclj]
             [clojure.core.logic :as logic]
             [clojure.set :as set]
@@ -273,3 +276,46 @@ Instead, we provide the `error` function, which throws an `Exception` with the g
 (fact
  (error 1000 " bottles of beer on the wall") => (throws #"1000 bottles of beer"))
 
+[[:chapter {:title "eval-symbol: Evaluate a Permacode Definition"}]]
+"At the end, all we want is to be able to take a certain definition and evaluate it.
+For example, consider the following Permacode module:"
+(def my-module
+  '[(ns example.my-module
+      (:require [clojure.string :as str]))
+    (pure
+     (defn tokenize [text]
+       (str/split text #"[ ,.!?:]+")))])
+
+(def my-other-module
+  '[(ns example.my-other-module
+      (:require [perm.QmVEZTVjgasSxga9kroyQc8EDozHUV5yfCMy3HMdiVNbjQ :as mine]))
+    (pure
+     (defn extract-hashtags [text]
+       (->> text mine/tokenize (filter #(clojure.string/starts-with? % "#")))))])
+
+"Let's save these to files."
+(fact
+  (def example-dir (io/file "/tmp/permacode.core/example"))
+  (.mkdirs example-dir)
+  (with-open [f (io/writer (io/file example-dir "my_module.clj"))]
+    (doseq [expr my-module]
+      (.write f (pr-str expr))))
+  (with-open [f (io/writer (io/file example-dir "my_other_module.clj"))]
+    (doseq [expr my-other-module]
+      (.write f (pr-str expr)))))
+
+"Now let's publish the `example` directory."
+(fact
+  (def hasher (hasher/nippy-multi-hasher (hasher/atom-store)))
+  (def published
+    (publish/hash-all hasher example-dir))
+  published => map?
+  published =not=> empty?)
+
+"Now we want to use the `extrat-hashtags` function.  To do so we use `eval-symbol`:"
+(fact
+ (binding [validate/*hasher* hasher]
+   (published 'example.my-module) => 'perm.QmVEZTVjgasSxga9kroyQc8EDozHUV5yfCMy3HMdiVNbjQ
+   (comment (published 'example.my-other-module) => 'perm.QmcdboxwW8kNxvUNcnepsxnrxd6X5X6GDN4QBmCXvfpGGA)
+   (comment   (let [extract-hashtags (eval-symbol )]
+                (extract-hashtags "These #days #tweets are all about #hashtags...") => ["#days" "#tweets" "#hashtags"]))))

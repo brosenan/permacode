@@ -1,6 +1,7 @@
 (ns permacode.publish-test
   (:require [permacode.publish :refer :all]
             [permacode.hasher :as hasher]
+            [clojure.string :as str]
             [clojure.java.io :as io]
             [midje.sweet :refer :all]))
 
@@ -36,13 +37,21 @@
 (fact
  (build-plan [bar baz]) => (throws "Unmet dependency: example.foo"))
 
-"Supported namespaces (`permacode.core/white-listed-ns`) are ignored."
+"Supported namespaces (`permacode.validate/white-listed-ns`) are ignored."
 (def foo2 (create-example-file (str example-dir "/foo2.clj")
                                '[(ns example.foo2
                                    (:require [clojure.string :as str]))
                                  (some-thing)]))
 (fact
  (build-plan [foo2]) => [foo2])
+
+"Additionally, permacode hashes are also ignored."
+(def foo3 (create-example-file (str example-dir "/foo3.clj")
+                               '[(ns example.foo3
+                                   (:require [perm.FOOBARBAZQUUX]))
+                                 (some-thing)]))
+(fact
+ (build-plan [foo3]) => [foo3])
 
 [[:section {:title "Under the Hood"}]]
 "The helper function `get-ns` takes a file object and returns its first expression.
@@ -60,25 +69,29 @@ For example:"
 a file object we wish to hash, and a hasher pair to hash it with.
 The function returns a hash code for the current file."
 
-(def foo-hash (hash-file hasher foo {}))
 
 (fact
+ (def foo-hash (hash-file hasher foo {}))
+ foo-hash => 'perm.Qmaoij9dS8Wukzjexun4uNs6iBzvU7rU8iMK6zDA7g74dm
  (let [[hash unhash] hasher]
-   (unhash foo-hash) => '[(ns example.foo)
-                          (some-thing)]))
+   (unhash (-> foo-hash str (str/replace-first "perm." "")))
+   => '[(ns example.foo)
+        (some-thing)]))
 
 "When a module has dependencies, the `ns` expression at its head is modified to reflect these dependencies."
 (def bar-hash (hash-file hasher bar {'example.foo foo-hash}))
 (fact
  (let [[hash unhash] hasher]
-   (unhash bar-hash) => '[(ns example.bar
-                           (:require [perm.Qmaoij9dS8Wukzjexun4uNs6iBzvU7rU8iMK6zDA7g74dm]))
-                          (some-thing-else)]))
+   (unhash (-> bar-hash str (str/replace-first "perm." "")))
+   => '[(ns example.bar
+          (:require [perm.Qmaoij9dS8Wukzjexun4uNs6iBzvU7rU8iMK6zDA7g74dm]))
+        (some-thing-else)]))
 
 "We add a `perm.` to the hash to mark it as a permacode hash.  
 Later, when we validate a module, we allow it to require any module starting with this prefix.
 For this reason it is **highly important** that software projects that use permacode do not
-name any modules `perm.*`."
+name any modules `perm.*`.
+"
 [[:chapter {:title "hash-all: Putting it All Together" :tag "hash-all"}]]
 "The complete process of hashing starts with a directory (as a file object).  `hash-all` performs the following:
 1. Finds all `.clj` files in that directory (recursively).
@@ -90,5 +103,5 @@ The return value is a map from namespace to corresponding hash."
   (hash-all hasher (io/file example-dir)))
 
 (fact
- (ns-hash 'example.foo) => foo-hash
- (ns-hash 'example.bar) => bar-hash)
+ (ns-hash 'example.foo) => 'perm.Qmaoij9dS8Wukzjexun4uNs6iBzvU7rU8iMK6zDA7g74dm
+ (ns-hash 'example.bar) => 'perm.QmUoDfM2YGXYaXQVeCsDRvCjnDvhWkHHtE634gyFSq4VCM)

@@ -18,4 +18,4 @@
     (validate/validate-expr allowed-symbols res)
     res))
 
-
+(defn eval-symbol [symbol])
