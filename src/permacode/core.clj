@@ -18,4 +18,8 @@
     (validate/validate-expr allowed-symbols res)
     res))
 
-(defn eval-symbol [symbol])
+(defn eval-symbol [sym]
+  (let [ns (symbol (namespace sym))
+        local (symbol (name sym))]
+    (validate/perm-require ns)
+    ((ns-publics ns) local)))

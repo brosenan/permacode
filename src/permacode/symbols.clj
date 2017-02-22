@@ -7,6 +7,7 @@
 (derive Number ::primitive)
 (derive String ::primitive)
 (derive Boolean ::primitive)
+(derive java.util.regex.Pattern ::primitive)
 (derive clojure.lang.Keyword ::primitive)
 
 (defmethod symbols ::primitive [expr] #{})

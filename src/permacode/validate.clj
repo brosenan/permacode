@@ -83,7 +83,7 @@
     'meta 'with-meta
     'assoc 'assoc-in 'merge 'merge-with
     '*ns* ; TBD
-    'defn 'defmacro})
+    'defn 'defmacro 'fn 'for '-> '->>})
 
 (def white-listed-ns
   #{"clojure.set" "clojure.string" "permacode.core"})
@@ -124,7 +124,8 @@
           (if (str/starts-with? (str (first spec)) "perm.")
             (perm-require (first spec))
             ; else
-            (require spec))
+            (do
+              (require (vec spec))))
           (eval (cons 'do (rest content))))
         nil
         (finally

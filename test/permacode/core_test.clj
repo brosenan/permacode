@@ -281,15 +281,17 @@ Instead, we provide the `error` function, which throws an `Exception` with the g
 For example, consider the following Permacode module:"
 (def my-module
   '[(ns example.my-module
-      (:require [clojure.string :as str]))
-    (pure
+      (:require [clojure.string :as str]
+                [permacode.core]))
+    (permacode.core/pure
      (defn tokenize [text]
        (str/split text #"[ ,.!?:]+")))])
 
 (def my-other-module
   '[(ns example.my-other-module
-      (:require [perm.QmVEZTVjgasSxga9kroyQc8EDozHUV5yfCMy3HMdiVNbjQ :as mine]))
-    (pure
+      (:require [perm.QmeWDmfeaL4smjjrVq1F71jCpR9WBUgDBzpQFmi4HhBKC5 :as mine]
+                [permacode.core]))
+    (permacode.core/pure
      (defn extract-hashtags [text]
        (->> text mine/tokenize (filter (fn [x] (clojure.string/starts-with? x "#"))))))])
 
@@ -306,6 +308,8 @@ For example, consider the following Permacode module:"
 
 "Now let's publish the `example` directory."
 (fact
+ (remove-ns 'perm.QmeWDmfeaL4smjjrVq1F71jCpR9WBUgDBzpQFmi4HhBKC5)
+ (remove-ns 'perm.QmWQzgQqoTCwWydGwVSmCupSavdJWaydWNAgNfZEaLX2Rg)
  (def hasher (hasher/nippy-multi-hasher (hasher/atom-store)))
   (def published
     (publish/hash-all hasher example-dir))
@@ -315,7 +319,7 @@ For example, consider the following Permacode module:"
 "Now we want to use the `extrat-hashtags` function.  To do so we use `eval-symbol`:"
 (fact
  (binding [validate/*hasher* hasher]
-   (published 'example.my-module) => 'perm.QmVEZTVjgasSxga9kroyQc8EDozHUV5yfCMy3HMdiVNbjQ
-   (published 'example.my-other-module) => 'perm.QmNgoiGXrzgJfujbXR2h1MoktQHt7YkjiKbDdT742TXM9d
-   (comment   (let [extract-hashtags (eval-symbol )]
-                (extract-hashtags "These #days #tweets are all about #hashtags...") => ["#days" "#tweets" "#hashtags"]))))
+   (published 'example.my-module) => 'perm.QmeWDmfeaL4smjjrVq1F71jCpR9WBUgDBzpQFmi4HhBKC5
+   (published 'example.my-other-module) => 'perm.QmWQzgQqoTCwWydGwVSmCupSavdJWaydWNAgNfZEaLX2Rg
+   (let [extract-hashtags (eval-symbol 'perm.QmWQzgQqoTCwWydGwVSmCupSavdJWaydWNAgNfZEaLX2Rg/extract-hashtags)]
+     (comment (extract-hashtags "These #days #tweets are all about #hashtags...") => ["#days" "#tweets" "#hashtags"]))))
