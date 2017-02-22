@@ -291,7 +291,7 @@ For example, consider the following Permacode module:"
       (:require [perm.QmVEZTVjgasSxga9kroyQc8EDozHUV5yfCMy3HMdiVNbjQ :as mine]))
     (pure
      (defn extract-hashtags [text]
-       (->> text mine/tokenize (filter #(clojure.string/starts-with? % "#")))))])
+       (->> text mine/tokenize (filter (fn [x] (clojure.string/starts-with? x "#"))))))])
 
 "Let's save these to files."
 (fact
@@ -306,7 +306,7 @@ For example, consider the following Permacode module:"
 
 "Now let's publish the `example` directory."
 (fact
-  (def hasher (hasher/nippy-multi-hasher (hasher/atom-store)))
+ (def hasher (hasher/nippy-multi-hasher (hasher/atom-store)))
   (def published
     (publish/hash-all hasher example-dir))
   published => map?
@@ -316,6 +316,6 @@ For example, consider the following Permacode module:"
 (fact
  (binding [validate/*hasher* hasher]
    (published 'example.my-module) => 'perm.QmVEZTVjgasSxga9kroyQc8EDozHUV5yfCMy3HMdiVNbjQ
-   (comment (published 'example.my-other-module) => 'perm.QmcdboxwW8kNxvUNcnepsxnrxd6X5X6GDN4QBmCXvfpGGA)
+   (published 'example.my-other-module) => 'perm.QmNgoiGXrzgJfujbXR2h1MoktQHt7YkjiKbDdT742TXM9d
    (comment   (let [extract-hashtags (eval-symbol )]
                 (extract-hashtags "These #days #tweets are all about #hashtags...") => ["#days" "#tweets" "#hashtags"]))))
