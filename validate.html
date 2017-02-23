@@ -61,7 +61,7 @@
           <div class="heading">
             <div>
               <h5>Author: Boaz Rosenan&nbsp;&nbsp;<a href="mailto:brosenan@gmail.com">(brosenan@gmail.com)</a></h5>
-              <h5>Date: 22 February 2017</h5>
+              <h5>Date: 23 February 2017</h5>
               <h5>Repository: <a href="https://github.com/brosenan/permacode">https://github.com/brosenan/permacode</a></h5>
               <h5>Version: 0.1.0-SNAPSHOT</h5></div></div>
           <hr/>
@@ -162,12 +162,15 @@
                       (:require [clojure.java.io]))])
 (def hash-to-require (symbol (str &quot;abcd&quot; (rand-int 10000)))) ; Fresh namespace</code></pre></div><div class="code"><pre><code class="clojure">(binding [*hasher* [nil mock-unhash]]
  (perm-require hash-to-require) =&gt; (throws &quot;Namespace clojure.java.io is not approved for permacode&quot;))</code></pre></div><div><p>When a module <code>:require</code>s some other permacode module, <code>perm-require</code> recursively loads it.</p></div><div class="code"><pre><code class="clojure">(def mock-content '[(ns foo
-                      (:require [perm.FOOBAR1234 :as foobar]))])
+                      (:require [perm.FOOBAR1234]))])
 (def hash-to-require (symbol (str &quot;abcd&quot; (rand-int 10000)))) ; Fresh namespace</code></pre></div><div class="code"><pre><code class="clojure">(binding [*hasher* [nil mock-unhash]]
  (perm-require hash-to-require) =&gt; nil
  (provided
   (find-ns hash-to-require) =&gt; nil
-  (find-ns 'perm.FOOBAR1234) =&gt; :something))</code></pre></div>
+  (find-ns 'perm.FOOBAR1234) =&gt; :something))</code></pre></div><div><p><code>perm-require</code> accepts an optional <code>:as</code> keyword argument, and creates an alias accordingly.</p></div><div class="code"><pre><code class="clojure">(let [alias (symbol (str &quot;foobar&quot; (rand-int 100000)))]
+ (binding [*hasher* [nil mock-unhash]]
+   (perm-require hash-to-require :as alias) =&gt; nil
+   ((ns-aliases *ns*) alias) =not=&gt; nil?))</code></pre></div>
         </div>
       </div>
     </div>
