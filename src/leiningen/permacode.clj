@@ -36,7 +36,9 @@
         (when (string/starts-with? (str dep) "perm.")
           (.mkdirs perm-dir)
           (let [hash-code (string/replace-first (str dep) "perm." "")
-                content (unhash hash-code)]
+                content (unhash hash-code)
+                [[ns' name & clauses] & exprs] content
+                content (concat [(concat [ns' dep] clauses)] exprs)]
             (with-open [f (io/writer (io/file perm-dir (str hash-code ".clj")))]
               (doseq [expr content]
                 (.write f (pr-str expr))))))))))

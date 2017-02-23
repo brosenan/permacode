@@ -9,6 +9,7 @@
 (derive Boolean ::primitive)
 (derive java.util.regex.Pattern ::primitive)
 (derive clojure.lang.Keyword ::primitive)
+(derive clojure.lang.Namespace ::primitive)
 
 (defmethod symbols ::primitive [expr] #{})
 (defmethod symbols nil [expr] #{})

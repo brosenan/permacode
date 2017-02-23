@@ -13,7 +13,8 @@ and returns a set of symbols defined by this s-expression."
  (symbols "foo") => #{}
  (symbols :foo) => #{}
  (symbols nil) => #{}
- (symbols #"foobar") => #{})
+ (symbols #"foobar") => #{}
+ (symbols *ns*) => #{})
 
 "For a symbol, `symbols` returns a set with that symbol."
 (fact
