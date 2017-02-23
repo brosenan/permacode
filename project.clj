@@ -12,7 +12,8 @@
                                   [im.chit/lucid.publish "1.2.8"]
                                   [im.chit/hara.string.prose "2.4.8"]]
                    :plugins [[lein-midje "3.2.1"]
-                             [lein-pprint "1.1.2"]]}}
+                             [lein-pprint "1.1.2"]
+                             [permacode/permacode "0.1.0-SNAPSHOT"]]}}
   :publish {:theme  "bolton"
             :template {:site   "permacode"
                        :author "Boaz Rosenan"
