@@ -135,7 +135,33 @@
                      (def bar foo)))
  =&gt; #{'bar 'foo}</code></pre></div><div><p>Comments (that expand to <code>nil</code>) are allowed as top-level expressions.</p></div><div class="code"><pre><code class="clojure">(validate-expr #{} '(comment
                      (foo bar)))
- =&gt; #{}</code></pre></div><div><span id="validate"></span><h2><b>4 &nbsp;&nbsp; validate: Validate an Entire Module</b></h2></div><div><p>A module is valid if:</p><ol><li>Its first expression is <code>ns</code>, and it is valid based on <a href='#validate-ns'>validate-ns</a>.</li><li>All its other expressions are <code>pure</code> expressions.  The <code>pure</code> macro validates its own contents.</li></ol></div><div><span id="perm-require-load-a-hashed-namespace"></span><h2><b>5 &nbsp;&nbsp; perm-require: Load a Hashed Namespace</b></h2></div><div><p>When we have a hash-code that represents a permacode namespace, we need to <code>perm-require</code> it so that it becomes available for programs.</p></div><div><p>The <code>perm-require</code> function takes a hash code and possibly an alias, and loads the module along with its dependencies, similar to the <code>clojure.core/require</code> function.</p></div><div><p>For <code>perm-require</code> to work, it needs a <a href='hasher.html'>hasher</a>. <code>perm-require</code> assumes a hasher is provided in the dynamic variable <code>&#42;hasher&#42;</code>.</p></div><div class="code"><pre><code class="clojure">(perm-require 'perm.abcd) =&gt; (throws &quot;When calling perm-require, the *hasher* variable must be bound&quot;)</code></pre></div><div><p>If the hash's namespace is already loaded, we return.</p></div><div class="code"><pre><code class="clojure">(def hasher (hasher/nippy-multi-hasher (hasher/atom-store)))</code></pre></div><div class="code"><pre><code class="clojure">(binding [*hasher* hasher]
+ =&gt; #{}</code></pre></div><div><span id="validate"></span><h2><b>4 &nbsp;&nbsp; validate: Validate an Entire Module</b></h2></div><div><p>A module is valid if:</p><ol><li>Its first expression is <code>ns</code>, and it is valid based on <a href='#validate-ns'>validate-ns</a>.</li><li>All its other expressions are <code>pure</code> expressions.  The <code>pure</code> macro validates its own contents.</li></ol></div><div><p><code>validate</code> takes the content of a module (as a seq of expressions) and and a list of allowed namespaces, and succeeds (does not throw exceptions) if valid.</p></div><div class="code"><pre><code class="clojure">(validate '[(ns foo.bar
+             (:require [permacode.core]
+                       [clojure.string :as str]
+                       [perm.FOOBAR123 :as some-other-module]))
+           (permacode.core/pure
+            (def x 3))] white-listed-ns)
+ =&gt; nil</code></pre></div><div><p>If something is wrong in the <code>ns</code> expression, it throws.</p></div><div class="code"><pre><code class="clojure">(validate '[(ns foo.bar
+             (:require [permacode.core]
+                       [some.bad.module]
+                       [clojure.string :as str]
+                       [perm.FOOBAR123 :as some-other-module]))
+           (permacode.core/pure
+            (def x 3))] white-listed-ns)
+ =&gt; (throws)</code></pre></div><div><p>If one of the other expressions in the module is not wrapped in a <code>pure</code>, an exception is thrown.</p></div><div class="code"><pre><code class="clojure">(validate '[(ns foo.bar
+             (:require [permacode.core]
+                       [clojure.string :as str]
+                       [perm.FOOBAR123 :as some-other-module]))
+           (permacode.core/pure
+            (def x 3))
+           (def y 5)] white-listed-ns)
+ =&gt; (throws &quot;Expression (def y 5) must be wrapped in a pure macro&quot;)</code></pre></div><div><p>In case <code>permacode.core</code> is aliased to some name, <code>validate</code> allowes <code>pure</code> to be used from within that alias.</p></div><div class="code"><pre><code class="clojure">(validate '[(ns foo.bar
+             (:require [permacode.core :as perm]
+                       [clojure.string :as str]
+                       [perm.FOOBAR123 :as some-other-module]))
+           (perm/pure
+            (def x 3))] white-listed-ns)
+ =&gt; nil</code></pre></div><div><span id="perm-require-load-a-hashed-namespace"></span><h2><b>5 &nbsp;&nbsp; perm-require: Load a Hashed Namespace</b></h2></div><div><p>When we have a hash-code that represents a permacode namespace, we need to <code>perm-require</code> it so that it becomes available for programs.</p></div><div><p>The <code>perm-require</code> function takes a hash code and possibly an alias, and loads the module along with its dependencies, similar to the <code>clojure.core/require</code> function.</p></div><div><p>For <code>perm-require</code> to work, it needs a <a href='hasher.html'>hasher</a>. <code>perm-require</code> assumes a hasher is provided in the dynamic variable <code>&#42;hasher&#42;</code>.</p></div><div class="code"><pre><code class="clojure">(perm-require 'perm.abcd) =&gt; (throws &quot;When calling perm-require, the *hasher* variable must be bound&quot;)</code></pre></div><div><p>If the hash's namespace is already loaded, we return.</p></div><div class="code"><pre><code class="clojure">(def hasher (hasher/nippy-multi-hasher (hasher/atom-store)))</code></pre></div><div class="code"><pre><code class="clojure">(binding [*hasher* hasher]
  (perm-require 'perm.abcd) =&gt; nil
  (provided
   (find-ns 'perm.abcd) =&gt; :something))</code></pre></div><div><p>If the namespace if not loaded, the code is retrieved from the hasher.</p></div><div class="code"><pre><code class="clojure">(def hash-to-require (symbol (str &quot;perm.abcd&quot; (rand-int 10000))))
