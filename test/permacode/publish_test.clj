@@ -83,7 +83,7 @@ The function returns a hash code for the current file."
 
 (fact
  (def foo-hash (hash-file hasher foo {}))
- foo-hash => 'perm.QmVte1FE6VgtXkczMQH7GxG1ciPuW7XNVo5EAENU3XZBpA
+ foo-hash => 'perm.QmUE7gsLyEKiKxzVkytFzy7jVkMu3LiSSecAMX9ax8nd82
  (let [[hash unhash] hasher]
    (unhash (-> foo-hash str (str/replace-first "perm." "")))
    => '[(ns example.foo
@@ -98,7 +98,7 @@ The function returns a hash code for the current file."
    (unhash (-> bar-hash str (str/replace-first "perm." "")))
    => '[(ns example.bar
           (:require [permacode.core :as perm])
-          (:require [perm.QmVte1FE6VgtXkczMQH7GxG1ciPuW7XNVo5EAENU3XZBpA]))
+          (:require [perm.QmUE7gsLyEKiKxzVkytFzy7jVkMu3LiSSecAMX9ax8nd82]))
         (perm/pure
          (some-thing-else))]))
 
@@ -128,5 +128,5 @@ The return value is a map from namespace to corresponding hash."
   (hash-all hasher (io/file example-dir)))
 
 (fact
- (ns-hash 'example.foo) => 'perm.QmVte1FE6VgtXkczMQH7GxG1ciPuW7XNVo5EAENU3XZBpA
- (ns-hash 'example.bar) => 'perm.QmY9HiHQ6v9E4gDnLCA2CTaa1SsiHn8V4hw44WmLrt5Kdh)
+ (ns-hash 'example.foo) => 'perm.QmUE7gsLyEKiKxzVkytFzy7jVkMu3LiSSecAMX9ax8nd82
+ (ns-hash 'example.bar) => 'perm.QmRZsYU3VdnLG2za1xRGysZZbPpdHN5jm2n7a3VpQvUsCY)

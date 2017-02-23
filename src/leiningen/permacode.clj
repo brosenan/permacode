@@ -1,7 +1,8 @@
 (ns leiningen.permacode
   (:require [clojure.java.io :as io]
             [permacode.hasher :as hasher]
-            [permacode.publish :as publish]))
+            [permacode.publish :as publish]
+            [clojure.string :as string]))
 
 (defn get-hasher [project]
   (let [repo (or (:permacode-repo project)
@@ -11,20 +12,40 @@
 
 (defn publish
   "Publish the current version of the project as permacode"
-  [project args]
-  (doseq [dir (:source-paths project)]
-    (publish/hash-all (get-hasher project) (io/file dir))))
+  [project & namespaces-to-show]
+  (let [hashes (apply merge (for [dir (:source-paths project)]
+                              (publish/hash-all (get-hasher project) (io/file dir))))
+        hashes (if (empty? namespaces-to-show)
+                 hashes
+                 ; else
+                 (into {} (for [ns namespaces-to-show]
+                            [ns (hashes (symbol ns))])))]
+    (doseq [[key value] hashes]
+      (println value "\t" key))))
 
 (defn deps 
   "Retrieve all permacode dependencies for this project"
-  [project args]
-  (println "Deps..."))
+  [project & args]
+  (doseq [dir (:source-paths project)
+          file (->> (io/file dir) file-seq (filter (fn [f] (->> f str (re-matches #".*\.clj")))))]
+    (let [[hash unhash] (get-hasher project)
+          perm-dir (io/file dir "perm")
+          [ns' name & clauses] (publish/get-ns file)]
+      (doseq [[req' & specs] clauses
+              [dep & args] specs]
+        (when (string/starts-with? (str dep) "perm.")
+          (.mkdirs perm-dir)
+          (let [hash-code (string/replace-first (str dep) "perm." "")
+                content (unhash hash-code)]
+            (with-open [f (io/writer (io/file perm-dir (str hash-code ".clj")))]
+              (doseq [expr content]
+                (.write f (pr-str expr))))))))))
 
 (defn permacode
   "Share and use pure functional code"
   {:subtasks [#'publish #'deps]}
   [project & [sub-task & args]]
   (case sub-task
-    "publish" (publish project args)
-    "deps" (deps project args)
+    "publish" (apply publish project args)
+    "deps" (apply deps project args)
     (println "A valid task name must be specified.  See lein help permacode")))

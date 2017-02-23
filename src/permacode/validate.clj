@@ -38,7 +38,8 @@
 
 (defn validate-value [env expr]
   (let [s (symbols expr)
-        forbidden (clojure.set/difference s env)]
+        forbidden (clojure.set/difference s env)
+        forbidden (set (filter (fn [sym] (not (str/includes? (str sym) "."))) forbidden))]
     (when-not (empty? forbidden)
       (throw (Exception. (str "symbols " forbidden " are not allowed"))))))
 
@@ -78,15 +79,19 @@
     'count 'range 'apply 'concat
     'first 'second 'nth 'rest
     'class 'name
-    'list 'seq 'vector 'vec 'str 'keyword 'namespace
-    'empty?
+    'list 'seq 'vector 'vec 'str 'keyword 'namespace 'symbol
+    'empty? 'vector? 'seq? 'list? 'nil? 'string? 'keyword? 'symbol?
     'meta 'with-meta
     'assoc 'assoc-in 'merge 'merge-with
     '*ns* ; TBD
     'defn 'defmacro 'fn 'for '-> '->>})
 
 (def white-listed-ns
-  #{"clojure.set" "clojure.string" "permacode.core"})
+  #{"clojure.set"
+    "clojure.string"
+    "permacode.core"
+    "permacode.symbols"
+    "clojure.core.logic"})
 
 (defn symbols-for-namespaces [ns-map]
   (into #{} (for [[ns-name ns-val] ns-map

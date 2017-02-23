@@ -11,9 +11,13 @@
 (defn error [& args]
   (throw (Exception. (apply str args))))
 
+(defn ^:private alias-map []
+  (into {} (for [[alias ns] (ns-aliases *ns*)]
+             [alias (symbol (str ns))])))
+
 (defmacro pure [& defs]
   (let [allowed-symbols (clojure.set/union @validate/allowed-symbols
-                                           (validate/symbols-for-namespaces (ns-aliases *ns*)))
+                                           (validate/symbols-for-namespaces (alias-map)))
         res `(do ~@defs)]
     (validate/validate-expr allowed-symbols res)
     res))

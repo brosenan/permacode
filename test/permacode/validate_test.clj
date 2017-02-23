@@ -129,6 +129,13 @@ We allow them in permacode, by making special cases out of them."
                 '(prefer-method foo a b)) => #{'foo 'a 'b}
   (validate-expr #{}
                 '(prefer-method foo a b)) => (throws "symbols #{a foo b} are not allowed"))
+
+"Comments (that expand to `nil`) are allowed as top-level expressions."
+(fact
+ (validate-expr #{} '(comment
+                       (foo bar)))
+ => #{})
+
 [[:section {:title "Validating Values"}]]
 "In definitions, the values are validated to only refer to allowed symbols."
 (fact
@@ -144,11 +151,16 @@ We allow them in permacode, by making special cases out of them."
                        (def bar foo)))
  => #{'bar 'foo})
 
-"Comments (that expand to `nil`) are allowed as top-level expressions."
+"While we do not allow Java interop in permacode, we do allow one small part of it: class literals.
+We do allow class names (symbols with dots in the middle) in expressions.
+The assumption is that alone (e.g., without possibility of instantiation or calling static methods)
+classes are harmless.  And they are useful.  Often, calsses are the best way to distinguish between
+different kinds of Clojure elements."
 (fact
- (validate-expr #{} '(comment
-                       (foo bar)))
- => #{})
+ (validate-expr #{} '(def bar foo.bar.MyClass))
+ => #{'bar}
+ (validate-expr #{} '(def bar (foo.bar.MyClass.)))
+ => (throws "symbols #{new} are not allowed"))
 
 [[:chapter {:title "validate: Validate an Entire Module" :tag "validate"}]]
 "A module is valid if:

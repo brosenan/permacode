@@ -42,7 +42,7 @@
 (defn convert-clauses [clauses hashes]
   (for [[require' & specs] clauses
         [dep & opts] specs]
-    [require' (concat [(convert-dep dep hashes)] opts)]))
+    [require' (vec (concat [(convert-dep dep hashes)] opts))]))
 
 (defn hash-file [[hash unhash] file hashes]
   (let [content (-> (str "[" (slurp file)  "]")
