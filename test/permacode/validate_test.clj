@@ -210,7 +210,7 @@ similar to the `clojure.core/require` function."
 
 "When a module `:require`s some other permacode module, `perm-require` recursively loads it."
 (def mock-content '[(ns foo
-                      (:require [perm.FOOBAR1234 :as foobar]))])
+                      (:require [perm.FOOBAR1234]))])
 (def hash-to-require (symbol (str "abcd" (rand-int 10000)))) ; Fresh namespace
 (fact
  (binding [*hasher* [nil mock-unhash]]
@@ -218,3 +218,10 @@ similar to the `clojure.core/require` function."
    (provided
     (find-ns hash-to-require) => nil
     (find-ns 'perm.FOOBAR1234) => :something)))
+
+"`perm-require` accepts an optional `:as` keyword argument, and creates an alias accordingly."
+(fact
+ (let [alias (symbol (str "foobar" (rand-int 100000)))]
+   (binding [*hasher* [nil mock-unhash]]
+     (perm-require hash-to-require :as alias) => nil
+     ((ns-aliases *ns*) alias) =not=> nil?)))

@@ -103,7 +103,7 @@
 
 (def ^:dynamic *hasher* nil)
 
-(defn perm-require [module]
+(defn perm-require [module & {:keys [as] :or {as nil}}]
   (when (= *hasher* nil)
     (throw (Exception. "When calling perm-require, the *hasher* variable must be bound")))
   (if (find-ns module)
@@ -122,11 +122,11 @@
         (doseq [[req' & specs] clauses
                 spec specs]
           (if (str/starts-with? (str (first spec)) "perm.")
-            (perm-require (first spec))
+            (apply perm-require spec)
             ; else
-            (do
-              (require (vec spec))))
-          (eval (cons 'do (rest content))))
-        nil
+            (require (vec spec))))
+        (eval (cons 'do (rest content)))
         (finally
-          (in-ns old-ns))))))
+          (in-ns old-ns)))))
+  (when-not (nil? as)
+    (alias as module)))
