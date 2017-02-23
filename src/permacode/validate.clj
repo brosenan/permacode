@@ -95,6 +95,11 @@
     "permacode.symbols"
     "clojure.core.logic"})
 
+(defn symbols-for-namespaces [ns-map]
+  (into #{} (for [[ns-name ns-val] ns-map
+                  [member-name _] (ns-publics ns-val)]
+              (symbol (str ns-name) (str member-name)))))
+
 (def allowed-symbols
   (delay (let [entries (for [ns (set/intersection (set (map str (all-ns))) (set white-listed-ns))]
                          [ns (symbol ns)])
