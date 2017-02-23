@@ -1,6 +1,7 @@
 (ns permacode.validate
   (:require [permacode.symbols :refer :all]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [clojure.set :as set]))
 
 (defmulti validate-ns-form (fn [[form & _] env]
                              form))
@@ -94,18 +95,13 @@
     "permacode.symbols"
     "clojure.core.logic"})
 
-(defn symbols-for-namespaces [ns-map]
-  (into #{} (for [[ns-name ns-val] ns-map
-                  [member-name _] (ns-publics ns-val)]
-              (symbol (str ns-name) (str member-name)))))
-
 (def allowed-symbols
-  (delay (let [entries (for [name white-listed-ns]
-                         [name (symbol name)])
+  (delay (let [entries (for [ns (set/intersection (set (map str (all-ns))) (set white-listed-ns))]
+                         [ns (symbol ns)])
                ns-map (into {} entries)]
-           (clojure.set/union core-white-list
-                              (set (map #(symbol "clojure.core" (str %)) core-white-list))
-                              (symbols-for-namespaces ns-map)))))
+           (set/union core-white-list
+                      (set (map #(symbol "clojure.core" (str %)) core-white-list))
+                      (symbols-for-namespaces ns-map)))))
 
 (defn validate [content env]
   (let [perm-alias (or (validate-ns (first content) env)
