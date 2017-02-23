@@ -101,6 +101,14 @@
                               (set (map #(symbol "clojure.core" (str %)) core-white-list))
                               (symbols-for-namespaces ns-map)))))
 
+(defn validate [content env]
+  (let [perm-alias (or (validate-ns (first content) env)
+                       'permacode.core)]
+    (doseq [expr (rest content)]
+      (when-not (= (first expr) (symbol (str perm-alias) "pure"))
+        (throw (Exception. (str "Expression " expr " must be wrapped in a pure macro"))))))
+  nil)
+
 (def ^:dynamic *hasher* nil)
 
 (defn perm-require [module & {:keys [as] :or {as nil}}]
@@ -114,7 +122,7 @@
           [hasher unhasher] *hasher*
           content (unhasher hash)
           [ns' name & clauses] (first content)]
-      (validate-ns (first content) white-listed-ns)
+      (validate content white-listed-ns)
       (try
         (in-ns module)
         (refer-clojure :only (vec core-white-list))
@@ -130,10 +138,4 @@
   (when-not (nil? as)
     (alias as module)))
 
-(defn validate [content env]
-  (let [perm-alias (or (validate-ns (first content) env)
-                       'permacode.core)]
-    (doseq [expr (rest content)]
-      (when-not (= (first expr) (symbol (str perm-alias) "pure"))
-        (throw (Exception. (str "Expression " expr " must be wrapped in a pure macro"))))))
-  nil)
+
