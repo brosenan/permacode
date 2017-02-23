@@ -80,7 +80,8 @@
     'first 'second 'nth 'rest
     'class 'name
     'list 'seq 'vector 'vec 'str 'keyword 'namespace 'symbol
-    'empty? 'vector? 'seq? 'list? 'nil? 'string? 'keyword? 'symbol?
+    'empty? 'contains?
+    'vector? 'seq? 'list? 'nil? 'string? 'keyword? 'symbol?
     'meta 'with-meta
     'assoc 'assoc-in 'merge 'merge-with
     '*ns* ; TBD
