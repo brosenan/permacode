@@ -47,6 +47,7 @@
 (defn hash-file [[hash unhash] file hashes]
   (let [content (-> (str "[" (slurp file)  "]")
                     read-string)
+        _ (validate/validate content (concat validate/white-listed-ns (map str (keys hashes))))
         [[ns' name & clauses] & exprs] content
         hash-code (hash (concat [(concat [ns' name] (convert-clauses clauses hashes))] exprs))]
     (symbol (str "perm." hash-code))))

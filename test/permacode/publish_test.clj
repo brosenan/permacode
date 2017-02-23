@@ -16,18 +16,24 @@
 (def example-dir "/tmp/permacode.publish/example")
 (.mkdirs (io/file example-dir))
 (def foo (create-example-file (str example-dir "/foo.clj")
-                              '[(ns example.foo)
-                                (some-thing)]))
+                              '[(ns example.foo
+                                  (:require [permacode.core :as perm]))
+                                (perm/pure
+                                 (some-thing))]))
 
 (def bar (create-example-file (str example-dir "/bar.clj")
                               '[(ns example.bar
+                                  (:require [permacode.core :as perm])
                                   (:require [example.foo]))
-                                (some-thing-else)]))
+                                (perm/pure
+                                 (some-thing-else))]))
 
 (def baz (create-example-file (str example-dir "/baz.clj")
                               '[(ns example.baz
+                                  (:require [permacode.core :as perm])
                                   (:require [example.bar]))
-                                (some-thing-else2)]))
+                                (perm/pure
+                                 (some-thing-else2))]))
 
 "Given these files, `build-plan` should return these files in order of their dependencies."
 (fact
@@ -40,16 +46,20 @@
 "Supported namespaces (`permacode.validate/white-listed-ns`) are ignored."
 (def foo2 (create-example-file (str example-dir "/foo2.clj")
                                '[(ns example.foo2
+                                   (:require [permacode.core :as perm])
                                    (:require [clojure.string :as str]))
-                                 (some-thing)]))
+                                 (perm/pure
+                                  (some-thing))]))
 (fact
  (build-plan [foo2]) => [foo2])
 
 "Additionally, permacode hashes are also ignored."
 (def foo3 (create-example-file (str example-dir "/foo3.clj")
                                '[(ns example.foo3
+                                   (:require [permacode.core :as perm])
                                    (:require [perm.FOOBARBAZQUUX]))
-                                 (some-thing)]))
+                                 (perm/pure
+                                  (some-thing))]))
 (fact
  (build-plan [foo3]) => [foo3])
 
@@ -58,6 +68,7 @@
 For example:"
 (fact
  (get-ns bar) => '(ns example.bar
+                    (:require [permacode.core :as perm])
                     (:require [example.foo])))
 
 [[:chapter {:title "hash-file: Hash a Source File" :tag "hash-file"}]]
@@ -72,11 +83,13 @@ The function returns a hash code for the current file."
 
 (fact
  (def foo-hash (hash-file hasher foo {}))
- foo-hash => 'perm.Qmaoij9dS8Wukzjexun4uNs6iBzvU7rU8iMK6zDA7g74dm
+ foo-hash => 'perm.QmVte1FE6VgtXkczMQH7GxG1ciPuW7XNVo5EAENU3XZBpA
  (let [[hash unhash] hasher]
    (unhash (-> foo-hash str (str/replace-first "perm." "")))
-   => '[(ns example.foo)
-        (some-thing)]))
+   => '[(ns example.foo
+          (:require [permacode.core :as perm]))
+        (perm/pure
+         (some-thing))]))
 
 "When a module has dependencies, the `ns` expression at its head is modified to reflect these dependencies."
 (def bar-hash (hash-file hasher bar {'example.foo foo-hash}))
@@ -84,14 +97,26 @@ The function returns a hash code for the current file."
  (let [[hash unhash] hasher]
    (unhash (-> bar-hash str (str/replace-first "perm." "")))
    => '[(ns example.bar
-          (:require [perm.Qmaoij9dS8Wukzjexun4uNs6iBzvU7rU8iMK6zDA7g74dm]))
-        (some-thing-else)]))
+          (:require [permacode.core :as perm])
+          (:require [perm.QmVte1FE6VgtXkczMQH7GxG1ciPuW7XNVo5EAENU3XZBpA]))
+        (perm/pure
+         (some-thing-else))]))
 
 "We add a `perm.` to the hash to mark it as a permacode hash.  
 Later, when we validate a module, we allow it to require any module starting with this prefix.
 For this reason it is **highly important** that software projects that use permacode do not
-name any modules `perm.*`.
-"
+name any modules `perm.*`."
+
+"To help detect problems early, source files are [validated](validate.html#validate) before being hashed."
+
+(fact
+ (def bar2 (create-example-file (str example-dir "/bar2.clj")
+                                '[(ns example.bar2
+                                    (:require [perm.FOOBARBAZQUUX]))
+                                  (some-thing-not-in-pure)]))
+ (hash-file hasher bar2 {}) => (throws "Expression (some-thing-not-in-pure) must be wrapped in a pure macro")
+ (.delete (io/file example-dir "bar2.clj")))
+
 [[:chapter {:title "hash-all: Putting it All Together" :tag "hash-all"}]]
 "The complete process of hashing starts with a directory (as a file object).  `hash-all` performs the following:
 1. Finds all `.clj` files in that directory (recursively).
@@ -103,5 +128,5 @@ The return value is a map from namespace to corresponding hash."
   (hash-all hasher (io/file example-dir)))
 
 (fact
- (ns-hash 'example.foo) => 'perm.Qmaoij9dS8Wukzjexun4uNs6iBzvU7rU8iMK6zDA7g74dm
- (ns-hash 'example.bar) => 'perm.QmUoDfM2YGXYaXQVeCsDRvCjnDvhWkHHtE634gyFSq4VCM)
+ (ns-hash 'example.foo) => 'perm.QmVte1FE6VgtXkczMQH7GxG1ciPuW7XNVo5EAENU3XZBpA
+ (ns-hash 'example.bar) => 'perm.QmY9HiHQ6v9E4gDnLCA2CTaa1SsiHn8V4hw44WmLrt5Kdh)
