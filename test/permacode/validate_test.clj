@@ -14,55 +14,42 @@ and makes sure that it has all the safeguards necessary for the second part to k
 The second part is done with the `pure` macro, at compile time.
 It makes sure that only allowed language constructs are used."
 
-[[:section {:title "Environment Representation"}]]
-"The global environment is represented as a *map* where the keys are *names of namespaces* (strings)
-and the values are *predicates* for symbols inside each namespace.
-Such a predicate can be a Clojure set of specific names, or it can be a function that somehow determines
-whether some symbol is inside the environment or not.  The function `(constantly true)` can be used
-to indicate that all members of a namespace are game."
-
-"Below is an example for a global environment definition."
-(def global-env
-  {"clojure.core" core-white-list
-   "clojure.string" (constantly true)
-   "clojure.set" (constantly true)
-   "my.proj.core" (constantly true)
-   "my.proj.other" (constantly true)})
-
 [[:chapter {:title "validate-ns: Validating the ns Expression" :tag "validate-ns"}]]
-"`validate-ns` takes a global environment and an `ns` expression.
-For a trivial `ns` expression it returns a local environment containing only the default namespace."
-(fact
- (validate-ns '(ns foo.bar) global-env) => {"" core-white-list})
+"`validate-ns` takes an `ns` expression and a list of allowed namespaces, and succeeds (returns nil)
+if this `ns` expression is valid in the sense that it only `requires` namespaces for that list."
 
-"If simple `:require` blocks are present, the corresponding entries from the global environment are copied
-to the local environment."
+"For a trivial `ns` expression it succeeds"
+(fact
+ (validate-ns '(ns foo.bar) white-listed-ns) => nil)
+
+"Simple `:require` clauses are allowed."
 (fact
  (validate-ns '(ns foo.bar
                  (:require [clojure.string]
-                          [clojure.set])
-                 (:require [my.proj.core])) global-env)
- => {"" core-white-list
-     "clojure.string" (global-env "clojure.string")
-     "clojure.set" (global-env "clojure.set")
-     "my.proj.core" (global-env "my.proj.core")})
+                           [clojure.set])
+                 (:require [my.proj.core])) (concat white-listed-ns ["my.proj.core"]))
+ => nil)
 
-"`:as` causes a `:require` to create a namespace with a different name in the local environment."
+"And so are `:require` clauses with `:as`:"
 (fact
  (validate-ns '(ns foo.bar
-                 (:require [clojure.string :as string])) global-env)
- => {"" core-white-list
-     "string" (global-env "clojure.string")})
+                 (:require [clojure.string :as string])) white-listed-ns)
+ => nil)
 
+"Other forms are not supported."
+(fact
+ (validate-ns '(ns foo.bar
+                 (:require [clojure.string :refer :all])) white-listed-ns)
+ => (throws ":refer is not allowed in ns expressions in permacode modules"))
 "If a `:require` refers to a namespace that is not in the environment, an exception is thrown."
 (fact
  (validate-ns '(ns foo.bar
-                 (:require [clojure.core.async])) global-env)
+                 (:require [clojure.core.async])) white-listed-ns)
  => (throws #"Namespace clojure.core.async is not approved for permacode"))
 
 "`validate-ns` also throws an exception if the expression it is given is not an `ns` expression."
 (fact
- (validate-ns '(not-an-ns-expr foo.bar) global-env)
+ (validate-ns '(not-an-ns-expr foo.bar) white-listed-ns)
  => (throws #"The first expression in a permacode source file must be an ns.  not-an-ns-expr given."))
 
 "Permacode modules can `:require` other permacode modules by naming them as `perm.*` where `*` is replaecd
@@ -70,8 +57,16 @@ with their hash code.
 We consider `:require`ing such a module safe."
 (fact
  (validate-ns '(ns foo.bar
-                 (:require [perm.ABCD1234])) global-env)
+                 (:require [perm.ABCD1234])) white-listed-ns)
  =not=> (throws))
+
+"When the `permacode.core` namespace is `:require`d and is given an alias, `validate-ns` returns that alias."
+(fact
+ (validate-ns '(ns foo.bar
+                 (:require [perm.ABCD1234 :as foo]
+                           [permacode.core :as bar]
+                           [clojure.string :as string])) white-listed-ns)
+ => 'bar)
 
 [[:chapter {:title "validate-expr: Validate a Body Expression" :tag "validate-expr"}]]
 "Given a set of allowed symbols we can validate a body  expression.
@@ -154,6 +149,12 @@ We allow them in permacode, by making special cases out of them."
  (validate-expr #{} '(comment
                        (foo bar)))
  => #{})
+
+[[:chapter {:title "validate: Validate an Entire Module" :tag "validate"}]]
+"A module is valid if:
+1. Its first expression is `ns`, and it is valid based on [validate-ns](#validate-ns).
+2. All its other expressions are `pure` expressions.  The `pure` macro validates its own contents."
+
 [[:chapter {:title "perm-require: Load a Hashed Namespace"}]]
 "When we have a hash-code that represents a permacode namespace, we need to `perm-require` it so that it becomes available
 for programs."

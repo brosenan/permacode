@@ -6,25 +6,25 @@
                              form))
 
 (defmethod validate-ns-form :require [[_ & ns-list] env]
-  (apply merge (for [[ns-name & {:keys [as]}] ns-list]
-                 (let [ns-name (name ns-name)
-                       alias (if as
-                               (name as)
-                               ; else
-                               ns-name)
-                       ns-content (env ns-name)]
-                   (if ns-content
-                     {alias ns-content}
-                     ; else
-                     (if (str/starts-with? (str ns-name) "perm.")
-                       {}
-                       ; else
-                       (throw (Exception. (str "Namespace " ns-name " is not approved for permacode")))))))))
+  (let [env (set env)]
+    (some identity (for [[ns-name & {:keys [as refer]}] ns-list]
+                     (let [ns-name (name ns-name)
+                           alias (if as
+                                   (name as)
+                                        ; else
+                                   ns-name)]
+                       (cond
+                         (not (nil? refer))            (throw (Exception. ":refer is not allowed in ns expressions in permacode modules"))
+                         (= ns-name "permacode.core")  (symbol alias)
+                         (str/starts-with?
+                          (str ns-name) "perm.")       nil
+                         (not (env ns-name))           (throw (Exception. (str "Namespace " ns-name " is not approved for permacode")))))))))
 
-(defn validate-ns [[ns' name & forms] global-env]
+(defn validate-ns [[ns' name & forms] env]
   (when-not (= ns' 'ns)
     (throw (Exception. (str "The first expression in a permacode source file must be an ns.  " ns' " given."))))
-  (apply merge {"" (global-env "clojure.core")} (map #(validate-ns-form % global-env) forms)))
+  (some identity (for [form forms]
+                   (validate-ns-form form env))))
 
 (defmulti validate-expr (fn [env expr] (first expr)))
 
@@ -113,9 +113,8 @@
           old-ns (symbol (str *ns*))
           [hasher unhasher] *hasher*
           content (unhasher hash)
-          [ns' name & clauses] (first content)
-          validation-env (into {} (map (fn [name] [name :something])) white-listed-ns)]
-      (validate-ns (first content) validation-env)
+          [ns' name & clauses] (first content)]
+      (validate-ns (first content) white-listed-ns)
       (try
         (in-ns module)
         (refer-clojure :only (vec core-white-list))
