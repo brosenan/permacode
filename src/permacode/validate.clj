@@ -7,24 +7,24 @@
 
 (defmethod validate-ns-form :require [[_ & ns-list] env]
   (let [env (set env)]
-    (some identity (for [[ns-name & {:keys [as refer]}] ns-list]
-                     (let [ns-name (name ns-name)
-                           alias (if as
-                                   (name as)
+    (some identity (doall (for [[ns-name & {:keys [as refer]}] ns-list]
+                          (let [ns-name (name ns-name)
+                                alias (if as
+                                        (name as)
                                         ; else
-                                   ns-name)]
-                       (cond
-                         (not (nil? refer))            (throw (Exception. ":refer is not allowed in ns expressions in permacode modules"))
-                         (= ns-name "permacode.core")  (symbol alias)
-                         (str/starts-with?
-                          (str ns-name) "perm.")       nil
-                         (not (env ns-name))           (throw (Exception. (str "Namespace " ns-name " is not approved for permacode")))))))))
+                                        ns-name)]
+                            (cond
+                              (not (nil? refer))            (throw (Exception. ":refer is not allowed in ns expressions in permacode modules"))
+                              (= ns-name "permacode.core")  (symbol alias)
+                              (str/starts-with?
+                               (str ns-name) "perm.")       nil
+                              (not (env ns-name))           (throw (Exception. (str "Namespace " ns-name " is not approved for permacode"))))))))))
 
 (defn validate-ns [[ns' name & forms] env]
   (when-not (= ns' 'ns)
     (throw (Exception. (str "The first expression in a permacode source file must be an ns.  " ns' " given."))))
-  (some identity (for [form forms]
-                   (validate-ns-form form env))))
+  (some identity (doall (for [form forms]
+                        (validate-ns-form form env)))))
 
 (defmulti validate-expr (fn [env expr] (first expr)))
 
@@ -129,3 +129,11 @@
           (in-ns old-ns)))))
   (when-not (nil? as)
     (alias as module)))
+
+(defn validate [content env]
+  (let [perm-alias (or (validate-ns (first content) env)
+                       'permacode.core)]
+    (doseq [expr (rest content)]
+      (when-not (= (first expr) (symbol (str perm-alias) "pure"))
+        (throw (Exception. (str "Expression " expr " must be wrapped in a pure macro"))))))
+  nil)

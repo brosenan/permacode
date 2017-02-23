@@ -155,6 +155,48 @@ We allow them in permacode, by making special cases out of them."
 1. Its first expression is `ns`, and it is valid based on [validate-ns](#validate-ns).
 2. All its other expressions are `pure` expressions.  The `pure` macro validates its own contents."
 
+"`validate` takes the content of a module (as a seq of expressions) and and a list of allowed namespaces,
+and succeeds (does not throw exceptions) if valid."
+(fact
+ (validate '[(ns foo.bar
+               (:require [permacode.core]
+                         [clojure.string :as str]
+                         [perm.FOOBAR123 :as some-other-module]))
+             (permacode.core/pure
+              (def x 3))] white-listed-ns)
+ => nil)
+
+"If something is wrong in the `ns` expression, it throws."
+(fact
+ (validate '[(ns foo.bar
+               (:require [permacode.core]
+                         [some.bad.module]
+                         [clojure.string :as str]
+                         [perm.FOOBAR123 :as some-other-module]))
+             (permacode.core/pure
+              (def x 3))] white-listed-ns)
+ => (throws))
+
+"If one of the other expressions in the module is not wrapped in a `pure`, an exception is thrown."
+(fact
+ (validate '[(ns foo.bar
+               (:require [permacode.core]
+                         [clojure.string :as str]
+                         [perm.FOOBAR123 :as some-other-module]))
+             (permacode.core/pure
+              (def x 3))
+             (def y 5)] white-listed-ns)
+ => (throws "Expression (def y 5) must be wrapped in a pure macro"))
+
+"In case `permacode.core` is aliased to some name, `validate` allowes `pure` to be used from within that alias."
+(fact
+ (validate '[(ns foo.bar
+               (:require [permacode.core :as perm]
+                         [clojure.string :as str]
+                         [perm.FOOBAR123 :as some-other-module]))
+             (perm/pure
+              (def x 3))] white-listed-ns)
+ => nil)
 [[:chapter {:title "perm-require: Load a Hashed Namespace"}]]
 "When we have a hash-code that represents a permacode namespace, we need to `perm-require` it so that it becomes available
 for programs."
