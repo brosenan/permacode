@@ -76,15 +76,17 @@
 
 (def core-white-list
   #{'+ '- '* '/ '= '== 'not= 'inc 'dec
+    'and 'or 'not
+    'identity
     'map 'filter 'reduce 'into
     'count 'range 'apply 'concat
     'first 'second 'nth 'rest
     'class 'name
     'list 'seq 'vector 'vec 'str 'keyword 'namespace 'symbol
-    'empty? 'contains?
-    'vector? 'seq? 'list? 'nil? 'string? 'keyword? 'symbol?
+    'empty? 'contains? 'pos? 'neg? 'identical?
+    'vector? 'seq? 'list? 'nil? 'string? 'keyword? 'symbol? 'map?
     'meta 'with-meta
-    'assoc 'assoc-in 'merge 'merge-with
+    'assoc 'assoc-in 'merge 'merge-with 'keys 'get
     '*ns* ; TBD
     'defn 'defmacro 'fn 'for '-> '->>})
 
