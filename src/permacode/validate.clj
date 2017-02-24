@@ -77,22 +77,24 @@
 (def core-white-list
   #{'+ '- '* '/ '= '== 'not= 'inc 'dec
     'and 'or 'not
-    'identity
     'map 'filter 'reduce 'into
     'count 'range 'apply 'concat
-    'first 'second 'nth 'rest
+    'first 'second 'nth 'rest 'next
     'class 'name
-    'list 'seq 'vector 'vec 'str 'keyword 'namespace 'symbol
+    'list 'seq 'cons 'vector 'vec 'str 'keyword 'namespace 'symbol
     'empty? 'contains? 'pos? 'neg? 'identical?
-    'vector? 'seq? 'list? 'nil? 'string? 'keyword? 'symbol? 'map?
+    'vector? 'seq? 'sequential? 'list? 'nil? 'string? 'keyword? 'symbol? 'map?
     'meta 'with-meta
     'assoc 'assoc-in 'merge 'merge-with 'keys 'get
+    'identity 'partial 'constantly
     '*ns* ; TBD
     'defn 'defmacro 'fn 'for '-> '->>})
 
 (def white-listed-ns
   #{"clojure.set"
     "clojure.string"
+    "clojure.walk"
+    "clojure.zip"
     "permacode.core"
     "permacode.symbols"
     "clojure.core.logic"})
