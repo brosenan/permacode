@@ -81,7 +81,7 @@
     'count 'range 'apply 'concat
     'first 'second 'nth 'rest 'next
     'class 'name
-    'list 'seq 'cons 'vector 'vec 'str 'keyword 'namespace 'symbol
+    'list 'seq 'cons 'vector 'vec 'str 'set 'keyword 'namespace 'symbol
     'empty? 'contains? 'pos? 'neg? 'identical?
     'vector? 'seq? 'sequential? 'list? 'nil? 'string? 'keyword? 'symbol? 'map?
     'meta 'with-meta
