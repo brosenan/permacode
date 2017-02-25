@@ -8,7 +8,6 @@
                  [com.taoensso/nippy "2.13.0"]
                  [aysylu/loom "1.0.0"]]
   :profiles {:dev {:dependencies [[midje "1.8.3"]
-                                  [org.clojure/core.logic "0.8.11"]
                                   [im.chit/lucid.publish "1.2.8"]
                                   [im.chit/hara.string.prose "2.4.8"]]
                    :plugins [[lein-midje "3.2.1"]

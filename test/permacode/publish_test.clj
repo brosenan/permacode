@@ -124,9 +124,24 @@ name any modules `perm.*`."
 3. Hashes each file, replacing dependencies with hashes as needed.
 
 The return value is a map from namespace to corresponding hash."
-(def ns-hash
-  (hash-all hasher (io/file example-dir)))
-
 (fact
+ (def ns-hash
+   (hash-all hasher (io/file example-dir)))
+
  (ns-hash 'example.foo) => 'perm.QmUE7gsLyEKiKxzVkytFzy7jVkMu3LiSSecAMX9ax8nd82
  (ns-hash 'example.bar) => 'perm.QmRZsYU3VdnLG2za1xRGysZZbPpdHN5jm2n7a3VpQvUsCY)
+
+"`hash-all` avoids source files that are already hashes.
+These have a `perm.` prefix, and are brought to a project using `lein permacode deps`."
+(fact
+ (def perm-dir (io/file example-dir "perm"))
+ (.mkdirs perm-dir)
+ (def perm-foo (create-example-file (str perm-dir "/SOMEHASH.clj")
+                                    '[(ns perm.SOMEHASH
+                                        (:require [permacode.core]))
+                                      (permacode.core/pure
+                                       (some-thing))]))
+ (def ns-hash
+   (hash-all hasher (io/file example-dir)))
+ (println ns-hash)
+ (ns-hash 'perm.SOMEHASH) => nil)

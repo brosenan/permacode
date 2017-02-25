@@ -87,6 +87,7 @@
     'meta 'with-meta
     'assoc 'assoc-in 'merge 'merge-with 'keys 'get
     'identity 'partial 'constantly
+    'unquote 'unquote-splicing
     '*ns* ; TBD
     'defn 'defmacro 'fn 'for '-> '->>})
 
@@ -96,8 +97,7 @@
     "clojure.walk"
     "clojure.zip"
     "permacode.core"
-    "permacode.symbols"
-    "clojure.core.logic"})
+    "permacode.symbols"})
 
 (defn symbols-for-namespaces [ns-map]
   (into #{} (for [[ns-name ns-val] ns-map

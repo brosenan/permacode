@@ -21,8 +21,10 @@
         ns-to-file (into ns-to-file (for [[[ns' name & _] file] ns-seq]
                                       [name file]))
         edges (for [[[ns' name & clauses] _] ns-seq
-                    [require' [dep & _]] clauses]
+                    [require' & specs] clauses
+                    [dep & _] specs]
                 [dep name])
+        edges (filter (fn [[dep name]] (not (string/starts-with? (str name) "perm."))) edges)
         nodes (set (map second edges))
         edges (filter (fn [[dep name]] (not (string/starts-with? (str dep) "perm."))) edges)
         graph (apply graph/digraph (concat edges nodes))
