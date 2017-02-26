@@ -26,4 +26,4 @@
   (let [ns (symbol (namespace sym))
         local (symbol (name sym))]
     (validate/perm-require ns)
-    ((ns-publics ns) local)))
+    @((ns-publics ns) local)))

@@ -75,21 +75,24 @@
   env)
 
 (def core-white-list
-  #{'+ '- '* '/ '= '== 'not= 'inc 'dec
-    'and 'or 'not
-    'map 'filter 'reduce 'into
-    'count 'range 'apply 'concat
-    'first 'second 'nth 'rest 'next
-    'class 'name
-    'list 'seq 'cons 'vector 'vec 'str 'set 'keyword 'namespace 'symbol
-    'empty? 'contains? 'pos? 'neg? 'identical?
-    'vector? 'seq? 'sequential? 'list? 'nil? 'string? 'keyword? 'symbol? 'map?
-    'meta 'with-meta
-    'assoc 'assoc-in 'merge 'merge-with 'keys 'get
-    'identity 'partial 'constantly
-    'unquote 'unquote-splicing
-    '*ns* ; TBD
-    'defn 'defmacro 'fn 'for '-> '->>})
+  (set/union #{'+ '- '* '/ '= '== 'not= 'inc 'dec
+               'and 'or 'not
+               'map 'filter 'reduce 'into
+               'count 'range 'apply 'concat
+               'first 'second 'nth 'rest 'next
+               'class 'name
+               'list 'seq 'cons 'vector 'vec 'str 'set 'keyword 'namespace 'symbol
+               'empty? 'contains? 'pos? 'neg? 'identical?
+               'vector? 'seq? 'sequential? 'list? 'nil? 'string? 'keyword? 'symbol? 'map?
+               'meta 'with-meta
+               'assoc 'assoc-in 'merge 'merge-with 'keys 'get
+               'identity 'partial 'constantly
+               'unquote 'unquote-splicing
+               '*ns*                            ; TBD
+               } (set (map first (filter (fn [[x y]] (:macro (meta y))) (ns-publics 'clojure.core))))))
+
+(def top-level-symbols
+  #{'prefer-method})
 
 (def white-listed-ns
   #{"clojure.set"
@@ -136,7 +139,7 @@
       (validate content white-listed-ns)
       (try
         (in-ns module)
-        (refer-clojure :only (vec core-white-list))
+        (refer-clojure :only (vec (set/union core-white-list top-level-symbols)))
         (doseq [[req' & specs] clauses
                 spec specs]
           (if (str/starts-with? (str (first spec)) "perm.")

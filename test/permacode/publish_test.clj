@@ -143,5 +143,4 @@ These have a `perm.` prefix, and are brought to a project using `lein permacode 
                                        (some-thing))]))
  (def ns-hash
    (hash-all hasher (io/file example-dir)))
- (println ns-hash)
  (ns-hash 'perm.SOMEHASH) => nil)

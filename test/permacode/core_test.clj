@@ -281,7 +281,8 @@ For example, consider the following Permacode module:"
                 [permacode.core]))
     (permacode.core/pure
      (defn extract-hashtags [text]
-       (->> text mine/tokenize (filter (fn [x] (clojure.string/starts-with? x "#"))))))])
+       (->> text mine/tokenize (filter (fn [x] (clojure.string/starts-with? x "#")))))
+     (def foo (with-meta [2] {:some :meta})))])
 
 "Let's save these to files."
 (fact
@@ -297,7 +298,7 @@ For example, consider the following Permacode module:"
 "Now let's publish the `example` directory."
 (fact
  (remove-ns 'perm.QmXGe3DdhRGKfLgs1Dp9sNa2VFktfqj32XicKRcUeLXMxG)
- (remove-ns 'perm.QmaJXbciYVQvMhJ5jj8qPE5CWz315a2UyiroGQ7WNqQKeS)
+ (remove-ns 'perm.QmVxcd8ooha7JtZvh5AD3QhAiLMm7Zjm5YAqkXitVbVSfo)
  (def hasher (hasher/nippy-multi-hasher (hasher/atom-store)))
   (def published
     (publish/hash-all hasher example-dir))
@@ -306,8 +307,14 @@ For example, consider the following Permacode module:"
 
 "Now we want to use the `extrat-hashtags` function.  To do so we use `eval-symbol`:"
 (fact
+ (published 'example.my-module) => 'perm.QmXGe3DdhRGKfLgs1Dp9sNa2VFktfqj32XicKRcUeLXMxG
+ (published 'example.my-other-module) => 'perm.QmVxcd8ooha7JtZvh5AD3QhAiLMm7Zjm5YAqkXitVbVSfo
  (binding [validate/*hasher* hasher]
-   (published 'example.my-module) => 'perm.QmXGe3DdhRGKfLgs1Dp9sNa2VFktfqj32XicKRcUeLXMxG
-   (published 'example.my-other-module) => 'perm.QmaJXbciYVQvMhJ5jj8qPE5CWz315a2UyiroGQ7WNqQKeS
-   (let [extract-hashtags (eval-symbol 'perm.QmaJXbciYVQvMhJ5jj8qPE5CWz315a2UyiroGQ7WNqQKeS/extract-hashtags)]
-     (comment (extract-hashtags "These #days #tweets are all about #hashtags...") => ["#days" "#tweets" "#hashtags"]))))
+   (let [extract-hashtags (eval-symbol 'perm.QmVxcd8ooha7JtZvh5AD3QhAiLMm7Zjm5YAqkXitVbVSfo/extract-hashtags)]
+     (extract-hashtags "These #days #tweets are all about #hashtags...") => ["#days" "#tweets" "#hashtags"])))
+
+"Metadata is maintained (the actual value is returned, not a variable pointing to it)."
+(fact
+ (binding [validate/*hasher* hasher]
+   (let [foo (eval-symbol 'perm.QmVxcd8ooha7JtZvh5AD3QhAiLMm7Zjm5YAqkXitVbVSfo/foo)]
+     (-> foo meta :some) => :meta)))
