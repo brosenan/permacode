@@ -61,7 +61,7 @@
           <div class="heading">
             <div>
               <h5>Author: Boaz Rosenan&nbsp;&nbsp;<a href="mailto:brosenan@gmail.com">(brosenan@gmail.com)</a></h5>
-              <h5>Date: 23 February 2017</h5>
+              <h5>Date: 26 February 2017</h5>
               <h5>Repository: <a href="https://github.com/brosenan/permacode">https://github.com/brosenan/permacode</a></h5>
               <h5>Version: 0.1.0-SNAPSHOT</h5></div></div>
           <hr/>
@@ -88,7 +88,8 @@
  (symbols &quot;foo&quot;) =&gt; #{}
  (symbols :foo) =&gt; #{}
  (symbols nil) =&gt; #{}
- (symbols #&quot;foobar&quot;) =&gt; #{}</code></pre></div><div><p>For a symbol, <code>symbols</code> returns a set with that symbol.</p></div><div class="code"><pre><code class="clojure">(symbols 'x) =&gt; #{'x}</code></pre></div><div><p><code>symbols</code> goes into Clojure structures and aggergates symbols from there.</p></div><div class="code"><pre><code class="clojure">(symbols '(+ a b)) =&gt; #{'+ 'a 'b}
+ (symbols #&quot;foobar&quot;) =&gt; #{}
+ (symbols *ns*) =&gt; #{}</code></pre></div><div><p>For a symbol, <code>symbols</code> returns a set with that symbol.</p></div><div class="code"><pre><code class="clojure">(symbols 'x) =&gt; #{'x}</code></pre></div><div><p><code>symbols</code> goes into Clojure structures and aggergates symbols from there.</p></div><div class="code"><pre><code class="clojure">(symbols '(+ a b)) =&gt; #{'+ 'a 'b}
  (symbols '[1 a 2 b]) =&gt; #{'a 'b}
  (symbols {'x 'y}) =&gt; #{'x 'y}
  (symbols #{'a 'b 3 4 5}) =&gt; #{'a 'b}</code></pre></div><div><p>In a <code>let&#42;</code> special form, the bindings are removed from the returned set.</p></div><div class="code"><pre><code class="clojure">(symbols '(let* [x 1 y 2] (+ x y))) =&gt; #{'+}

@@ -61,7 +61,7 @@
           <div class="heading">
             <div>
               <h5>Author: Boaz Rosenan&nbsp;&nbsp;<a href="mailto:brosenan@gmail.com">(brosenan@gmail.com)</a></h5>
-              <h5>Date: 23 February 2017</h5>
+              <h5>Date: 26 February 2017</h5>
               <h5>Repository: <a href="https://github.com/brosenan/permacode">https://github.com/brosenan/permacode</a></h5>
               <h5>Version: 0.1.0-SNAPSHOT</h5></div></div>
           <hr/>
@@ -127,15 +127,18 @@
  =&gt; (throws &quot;symbols #{c +} are not allowed&quot;)</code></pre></div><div><p>To support multimethods, <code>prefer-method</code> is allowed at the top-level.</p></div><div class="code"><pre><code class="clojure">(validate-expr #{'foo 'a 'b}
               '(prefer-method foo a b)) =&gt; #{'foo 'a 'b}
 (validate-expr #{}
-              '(prefer-method foo a b)) =&gt; (throws &quot;symbols #{a foo b} are not allowed&quot;)</code></pre></div><div><span id="validating-values"></span><h3>3.1 &nbsp;&nbsp; Validating Values</h3></div><div><p>In definitions, the values are validated to only refer to allowed symbols.</p></div><div class="code"><pre><code class="clojure">(validate-expr #{'foo} '(def bar (+ foo 2)))
+              '(prefer-method foo a b)) =&gt; (throws &quot;symbols #{a foo b} are not allowed&quot;)</code></pre></div><div><p>Comments (that expand to <code>nil</code>) are allowed as top-level expressions.</p></div><div class="code"><pre><code class="clojure">(validate-expr #{} '(comment
+                     (foo bar)))
+ =&gt; #{}</code></pre></div><div><span id="validating-values"></span><h3>3.1 &nbsp;&nbsp; Validating Values</h3></div><div><p>In definitions, the values are validated to only refer to allowed symbols.</p></div><div class="code"><pre><code class="clojure">(validate-expr #{'foo} '(def bar (+ foo 2)))
  =&gt; (throws &quot;symbols #{+} are not allowed&quot;)
  (validate-expr #{'foo '+} '(def bar (+ foo 2)))
  =&gt; #{'foo 'bar '+}</code></pre></div><div><p>In <code>do</code> blocks, symbols defined (or even declared) in previous definitions can be used in succeeding definitions.</p></div><div class="code"><pre><code class="clojure">(validate-expr #{} '(do
                      (declare foo)
                      (def bar foo)))
- =&gt; #{'bar 'foo}</code></pre></div><div><p>Comments (that expand to <code>nil</code>) are allowed as top-level expressions.</p></div><div class="code"><pre><code class="clojure">(validate-expr #{} '(comment
-                     (foo bar)))
- =&gt; #{}</code></pre></div><div><span id="validate"></span><h2><b>4 &nbsp;&nbsp; validate: Validate an Entire Module</b></h2></div><div><p>A module is valid if:</p><ol><li>Its first expression is <code>ns</code>, and it is valid based on <a href='#validate-ns'>validate-ns</a>.</li><li>All its other expressions are <code>pure</code> expressions.  The <code>pure</code> macro validates its own contents.</li></ol></div><div><p><code>validate</code> takes the content of a module (as a seq of expressions) and and a list of allowed namespaces, and succeeds (does not throw exceptions) if valid.</p></div><div class="code"><pre><code class="clojure">(validate '[(ns foo.bar
+ =&gt; #{'bar 'foo}</code></pre></div><div><p>While we do not allow Java interop in permacode, we do allow one small part of it: class literals. We do allow class names (symbols with dots in the middle) in expressions. The assumption is that alone (e.g., without possibility of instantiation or calling static methods) classes are harmless.  And they are useful.  Often, calsses are the best way to distinguish between different kinds of Clojure elements.</p></div><div class="code"><pre><code class="clojure">(validate-expr #{} '(def bar foo.bar.MyClass))
+ =&gt; #{'bar}
+ (validate-expr #{} '(def bar (foo.bar.MyClass.)))
+ =&gt; (throws &quot;symbols #{new} are not allowed&quot;)</code></pre></div><div><span id="validate"></span><h2><b>4 &nbsp;&nbsp; validate: Validate an Entire Module</b></h2></div><div><p>A module is valid if:</p><ol><li>Its first expression is <code>ns</code>, and it is valid based on <a href='#validate-ns'>validate-ns</a>.</li><li>All its other expressions are <code>pure</code> expressions.  The <code>pure</code> macro validates its own contents.</li></ol></div><div><p><code>validate</code> takes the content of a module (as a seq of expressions) and and a list of allowed namespaces, and succeeds (does not throw exceptions) if valid.</p></div><div class="code"><pre><code class="clojure">(validate '[(ns foo.bar
              (:require [permacode.core]
                        [clojure.string :as str]
                        [perm.FOOBAR123 :as some-other-module]))
