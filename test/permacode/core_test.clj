@@ -12,20 +12,20 @@
 
 [[:chapter {:title "Introduction"}]]
 "Just like the term *permalink* refers to a URL that will always link to the same content,
-*permacode* refers to code that will always behave the same way.
-More percisely, it refers to an *expression* that will always *evaluate to the same value*."
+*permacode* refers to code that will always behave the same way."
 
-"In some cases the is easier to achieve than in other cases.
-For example, the expression `3.14` will probably, in almost any programming language, mean
-a number greater than 3 and a little smaller than the ratio between the circumference of a
-circle and its diameter.  However, the expression `pi` is not that lucky, as it gets different
-meanings in different contexts."
+"There are a few challenges in acheiving this in general code:
+- State changes.  Imperative code can store state which affects its own execution.
+- The world changes.  Code that queries the state of the world (e.g., `(System/currentTimeMillis)`) will give different results when the state of the world changes.
+- Code changes.  One version of the code will not behave the same way as its predecessors.
+"
 
 "Making permacode possible in the context of Clojure is a two-step process.
-First, we need to extract the *purely-functional core* of Clojure, since only
-purely-functional languages can guarantee behaving the same way regardless of
-their surroundings.
-Then we need to add *content addressing* to replace Clojure's module system."
+First, we need to extract the *purely-functional core* of Clojure, to avoid
+the first to issues.
+Purely-functional code is not affected by the outer world and does not affect it,
+guaranteeing that the same code will always run the same way.
+To address the second problem we add *content addressing* to replace Clojure's module system."
 
 [[:section {:title "A Purely-Functional Clojure"}]]
 "permacode attempts to create a purely-functional dialect of Clojure.
@@ -78,8 +78,8 @@ an s-expression (serialize, hash and store its content, returning the hash code)
   - Validate that all *.clj files conform with permacode, and if so --
   - Hash all these files, modifying them to reference each other by hash rather than by name.
   - Return a map from module name to module hash.
-2. Given a module hash, return the module.
-3. Given an s-expression containing fully-qualified names, evaluate the expression."
+2. Given a module hash, load the module.
+3. Given a fully-qualified symbol (where the namespace is a permacode hash), return the value of that symbol.  This value is guaranteed to always be the same, regardless of where and when it is evaluated."
 
 [[:chapter {:title "pure: Compile-time Verification"}]]
 "A permacode module should be wrapped in a `permacode.core/pure` macro.
@@ -264,7 +264,7 @@ Instead, we provide the `error` function, which throws an `Exception` with the g
 (fact
  (error 1000 " bottles of beer on the wall") => (throws #"1000 bottles of beer"))
 
-[[:chapter {:title "eval-symbol: Evaluate a Permacode Definition"}]]
+[[:chapter {:title "eval-symbol: Evaluate a Permacode Definition" :tag "eval-symbol"}]]
 "At the end, all we want is to be able to take a certain definition and evaluate it.
 For example, consider the following Permacode module:"
 (def my-module
