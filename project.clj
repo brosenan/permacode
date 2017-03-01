@@ -1,4 +1,4 @@
-(defproject permacode "0.1.1-SNAPSHOT"
+(defproject permacode "0.1.1"
   :description "A pure dialect of Clojure with content-addressed modules"
   :url "http://github.com/brosenan/permacode"
   :license {:name "Eclipse Public License"
