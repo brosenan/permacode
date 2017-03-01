@@ -13,8 +13,7 @@
                    :plugins [[lein-midje "3.2.1"]
                              [lein-pprint "1.1.2"]
                              [permacode/permacode "0.1.0-SNAPSHOT"]]}}
-  :repositories [["releases" {:url "https://clojars.org/repo"
-                              :creds :gpg}]]
+  :repositories [["releases" {:url "https://clojars.org/repo"}]]
   :publish {:theme  "bolton"
             :template {:site   "permacode"
                        :author "Boaz Rosenan"
