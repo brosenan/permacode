@@ -85,7 +85,7 @@
                'empty? 'contains? 'pos? 'neg? 'identical?
                'vector? 'seq? 'sequential? 'list? 'nil? 'string? 'keyword? 'symbol? 'map?
                'meta 'with-meta
-               'assoc 'assoc-in 'merge 'merge-with 'keys 'get
+               'assoc 'assoc-in 'merge 'merge-with 'keys 'key 'vals 'val 'get
                'identity 'partial 'constantly
                'unquote 'unquote-splicing
                '*ns*                            ; TBD
