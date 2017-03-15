@@ -79,7 +79,7 @@
                'and 'or 'not
                'map 'filter 'reduce 'into 'cat 'eduction 'sequence
                'take 'drop 'conj
-               'count 'range 'apply 'concat
+               'count 'range 'apply 'concat 'reverse
                'first 'second 'nth 'rest 'next
                'class 'name
                'list 'seq 'cons 'vector 'vec 'str 'set 'keyword 'namespace 'symbol
