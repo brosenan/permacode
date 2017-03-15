@@ -78,7 +78,7 @@
   (set/union #{'+ '- '* '/ '= '== 'not= 'inc 'dec
                'and 'or 'not
                'map 'filter 'reduce 'into 'cat 'eduction 'sequence
-               'take 'drop
+               'take 'drop 'conj
                'count 'range 'apply 'concat
                'first 'second 'nth 'rest 'next
                'class 'name
