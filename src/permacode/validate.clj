@@ -77,13 +77,13 @@
 (def core-white-list
   (set/union #{'+ '- '* '/ '= '== 'not= 'inc 'dec
                'and 'or 'not
-               'map 'filter 'reduce 'into 'cat 'eduction 'sequence
+               'map 'filter 'reduce 'into 'cat 'eduction 'sequence 'some
                'take 'drop 'conj
                'count 'range 'apply 'concat 'reverse
                'first 'second 'nth 'rest 'next
                'class 'name
                'list 'seq 'cons 'vector 'vec 'str 'set 'keyword 'namespace 'symbol
-               'empty? 'contains? 'pos? 'neg? 'identical?
+               'empty? 'contains? 'pos? 'neg? 'identical? 'some?
                'vector? 'seq? 'sequential? 'list? 'nil? 'string? 'keyword? 'symbol? 'map?
                'meta 'with-meta
                'assoc 'assoc-in 'merge 'merge-with 'keys 'key 'vals 'val 'get
