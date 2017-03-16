@@ -77,7 +77,7 @@
 (def core-white-list
   (set/union #{'+ '- '* '/ '= '== 'not= 'inc 'dec
                'and 'or 'not
-               'map 'filter 'reduce 'into 'cat 'eduction 'sequence 'some
+               'map 'filter 'reduce 'into 'cat 'eduction 'sequence 'some 'comp
                'take 'drop 'conj
                'count 'range 'apply 'concat 'reverse
                'first 'second 'nth 'rest 'next
