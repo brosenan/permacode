@@ -61,7 +61,7 @@
           <div class="heading">
             <div>
               <h5>Author: Boaz Rosenan&nbsp;&nbsp;<a href="mailto:brosenan@gmail.com">(brosenan@gmail.com)</a></h5>
-              <h5>Date: 27 February 2017</h5>
+              <h5>Date: 17 March 2017</h5>
               <h5>Repository: <a href="https://github.com/brosenan/permacode">https://github.com/brosenan/permacode</a></h5>
               <h5>Version: 0.1.1-SNAPSHOT</h5></div></div>
           <hr/>
@@ -164,7 +164,7 @@
                        [perm.FOOBAR123 :as some-other-module]))
            (perm/pure
             (def x 3))] white-listed-ns)
- =&gt; nil</code></pre></div><div><span id="perm-require-load-a-hashed-namespace"></span><h2><b>5 &nbsp;&nbsp; perm-require: Load a Hashed Namespace</b></h2></div><div><p>When we have a hash-code that represents a permacode namespace, we need to <code>perm-require</code> it so that it becomes available for programs.</p></div><div><p>The <code>perm-require</code> function takes a hash code and possibly an alias, and loads the module along with its dependencies, similar to the <code>clojure.core/require</code> function.</p></div><div><p>For <code>perm-require</code> to work, it needs a <a href='hasher.html'>hasher</a>. <code>perm-require</code> assumes a hasher is provided in the dynamic variable <code>&#42;hasher&#42;</code>.</p></div><div class="code"><pre><code class="clojure">(perm-require 'perm.abcd) =&gt; (throws &quot;When calling perm-require, the *hasher* variable must be bound&quot;)</code></pre></div><div><p>If the hash's namespace is already loaded, we return.</p></div><div class="code"><pre><code class="clojure">(def hasher (hasher/nippy-multi-hasher (hasher/atom-store)))</code></pre></div><div class="code"><pre><code class="clojure">(binding [*hasher* hasher]
+ =&gt; nil</code></pre></div><div><span id="perm-require-load-a-hashed-namespace"></span><h2><b>5 &nbsp;&nbsp; perm-require: Load a Hashed Namespace</b></h2></div><div><p>When we have a hash-code that represents a permacode namespace, we need to <code>perm-require</code> it so that it becomes available for programs.</p></div><div><p>The <code>perm-require</code> function takes a hash code and possibly an alias, and loads the module along with its dependencies, similar to the <code>clojure.core/require</code> function.</p></div><div><p>If the hash's namespace is already loaded, we return.</p></div><div class="code"><pre><code class="clojure">(binding [*hasher* (hasher/nippy-multi-hasher (hasher/atom-store))]
  (perm-require 'perm.abcd) =&gt; nil
  (provided
   (find-ns 'perm.abcd) =&gt; :something))</code></pre></div><div><p>If the namespace if not loaded, the code is retrieved from the hasher.</p></div><div class="code"><pre><code class="clojure">(def hash-to-require (symbol (str &quot;perm.abcd&quot; (rand-int 10000))))
