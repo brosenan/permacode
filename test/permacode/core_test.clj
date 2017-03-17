@@ -318,3 +318,12 @@ For example, consider the following Permacode module:"
  (binding [validate/*hasher* hasher]
    (let [foo (eval-symbol 'perm.QmVxcd8ooha7JtZvh5AD3QhAiLMm7Zjm5YAqkXitVbVSfo/foo)]
      (-> foo meta :some) => :meta)))
+
+[[:chapter {:title "module-publics: Get All Symbols" :tag "module-publics"}]]
+"`module-publics` (similar to `ns-publics` in `clojure.core`) returns all the public definitions in a permacode module
+in form of a map."
+(fact
+ (binding [validate/*hasher* hasher]
+   (let [pubs (module-publics 'perm.QmVxcd8ooha7JtZvh5AD3QhAiLMm7Zjm5YAqkXitVbVSfo)]
+     pubs => map?
+     (pubs 'foo) => [2])))

@@ -27,3 +27,7 @@
         local (symbol (name sym))]
     (validate/perm-require ns)
     @((ns-publics ns) local)))
+
+(defn module-publics [ns]
+  (validate/perm-require ns)
+  (reduce-kv (fn [m k v] (assoc m k @v)) {} (ns-publics ns)))

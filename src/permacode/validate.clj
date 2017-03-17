@@ -1,5 +1,6 @@
 (ns permacode.validate
   (:require [permacode.symbols :refer :all]
+            [permacode.hasher :as hasher]
             [clojure.string :as str]
             [clojure.set :as set]))
 
@@ -77,7 +78,7 @@
 (def core-white-list
   (set/union #{'+ '- '* '/ '= '== 'not= 'inc 'dec
                'and 'or 'not
-               'map 'filter 'reduce 'into 'cat 'eduction 'sequence 'some 'comp
+               'map 'filter 'reduce 'reduce-kv 'into 'cat 'eduction 'sequence 'some 'comp
                'take 'drop 'conj
                'count 'range 'apply 'concat 'reverse
                'first 'second 'nth 'rest 'next
@@ -124,7 +125,10 @@
         (throw (Exception. (str "Expression " expr " must be wrapped in a pure macro"))))))
   nil)
 
-(def ^:dynamic *hasher* nil)
+(def ^:dynamic *hasher*
+  (let [repo (or (System/getenv "PERMACODE_REPO")
+                 (str (System/getProperty "user.home") "/.permacode"))]
+    (hasher/nippy-multi-hasher (hasher/file-store repo))))
 
 (defn perm-require [module & {:keys [as] :or {as nil}}]
   (when (= *hasher* nil)

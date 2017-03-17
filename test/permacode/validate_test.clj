@@ -216,17 +216,9 @@ for programs."
 "The `perm-require` function takes a hash code and possibly an alias, and loads the module along with its dependencies,
 similar to the `clojure.core/require` function."
 
-"For `perm-require` to work, it needs a [hasher](hasher.html).
-`perm-require` assumes a hasher is provided in the dynamic variable `*hasher*`."
-
-(fact
- (perm-require 'perm.abcd) => (throws "When calling perm-require, the *hasher* variable must be bound"))
-
 "If the hash's namespace is already loaded, we return."
-(def hasher (hasher/nippy-multi-hasher (hasher/atom-store)))
-
 (fact
- (binding [*hasher* hasher]
+ (binding [*hasher* (hasher/nippy-multi-hasher (hasher/atom-store))]
    (perm-require 'perm.abcd) => nil
    (provided
     (find-ns 'perm.abcd) => :something)))
