@@ -82,8 +82,9 @@
                'take 'drop 'conj
                'count 'range 'apply 'concat 'reverse
                'first 'second 'nth 'rest 'next
-               'class 'name
-               'list 'seq 'cons 'vector 'vec 'str 'set 'keyword 'namespace 'symbol
+               'class 'name 'namespace
+               'subs 're-find 're-matches 're-seq
+               'list 'seq 'cons 'vector 'vec 'str 'set 'keyword 'symbol
                'empty? 'contains? 'pos? 'neg? 'identical? 'some?
                'vector? 'seq? 'sequential? 'list? 'nil? 'string? 'keyword? 'symbol? 'map?
                'meta 'with-meta
