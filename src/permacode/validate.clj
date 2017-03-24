@@ -79,7 +79,7 @@
   (set/union #{'+ '- '* '/ '= '== 'not= 'inc 'dec
                'and 'or 'not
                'map 'filter 'reduce 'reduce-kv 'into 'cat 'eduction 'sequence 'some 'comp
-               'take 'drop 'conj
+               'take 'drop 'conj 'take-while 'drop-while 'split-with
                'count 'range 'apply 'concat 'reverse
                'first 'second 'nth 'rest 'next
                'class 'name 'namespace
